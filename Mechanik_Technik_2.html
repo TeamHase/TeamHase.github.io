@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafischer Techniktest</title>
+
+  <style>
+    :root {
+      --blue: #1769aa;
+      --dark-blue: #104b78;
+      --light-blue: #eaf5ff;
+      --green: #198754;
+      --red: #dc3545;
+      --gray: #f2f4f7;
+      --dark: #202832;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #dceeff, #f8fafc);
+      color: var(--dark);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      margin: auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    header {
+      padding: 25px;
+      text-align: center;
+      color: white;
+      background: var(--blue);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 0;
+    }
+
+    .content {
+      padding: 25px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .intro {
+      line-height: 1.6;
+    }
+
+    .info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 25px 0;
+    }
+
+    .info div {
+      padding: 15px;
+      text-align: center;
+      border-radius: 10px;
+      background: var(--gray);
+    }
+
+    .info strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 23px;
+      color: var(--dark-blue);
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .main-button {
+      width: 100%;
+      color: white;
+      background: var(--blue);
+    }
+
+    .next-button {
+      margin-top: 18px;
+      color: white;
+      background: #6c757d;
+    }
+
+    .quiz-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 14px;
+    }
+
+    .progress {
+      color: var(--dark-blue);
+      font-weight: bold;
+    }
+
+    .timer {
+      min-width: 90px;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      color: white;
+      background: var(--green);
+      font-size: 19px;
+      font-weight: bold;
+    }
+
+    .timer.warning {
+      color: #222;
+      background: #f0ad00;
+    }
+
+    .timer.danger {
+      background: var(--red);
+    }
+
+    .bar {
+      height: 9px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #e5e7eb;
+    }
+
+    .bar-inner {
+      height: 100%;
+      background: var(--blue);
+      transition: width 0.3s;
+    }
+
+    .category {
+      margin-bottom: 10px;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .question {
+      font-size: 21px;
+      line-height: 1.4;
+    }
+
+    .graphic {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 230px;
+      margin: 20px 0;
+      padding: 10px;
+      overflow: hidden;
+      border: 1px solid #dbe3eb;
+      border-radius: 12px;
+      background: #f8fbfe;
+    }
+
+    svg {
+      width: 100%;
+      max-width: 650px;
+      height: 230px;
+    }
+
+    .answers {
+      display: grid;
+      gap: 12px;
+    }
+
+    .answer {
+      width: 100%;
+      text-align: left;
+      border: 2px solid #d6dee7;
+      color: var(--dark);
+      background: white;
+    }
+
+    .answer:hover {
+      border-color: var(--blue);
+      background: var(--light-blue);
+    }
+
+    .answer.correct {
+      border-color: var(--green);
+      background: #d9f4e4;
+    }
+
+    .answer.wrong {
+      border-color: var(--red);
+      background: #fbe0e3;
+    }
+
+    .answer:disabled {
+      cursor: default;
+      transform: none;
+    }
+
+    .feedback {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .feedback.success {
+      color: #126333;
+      background: #d9f4e4;
+    }
+
+    .feedback.error {
+      color: #8c1d29;
+      background: #fbe0e3;
+    }
+
+    .result {
+      text-align: center;
+    }
+
+    .score {
+      margin: 20px;
+      color: var(--blue);
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    .review {
+      margin-top: 25px;
+    }
+
+    .review-item {
+      margin: 10px 0;
+      padding: 12px;
+      border-left: 4px solid var(--green);
+      background: #f8fafc;
+      line-height: 1.5;
+    }
+
+    .review-item.wrong {
+      border-left-color: var(--red);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+      }
+
+      .content {
+        padding: 17px;
+      }
+
+      .info {
+        grid-template-columns: 1fr;
+      }
+
+      .question {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Grafischer Techniktest</h1>
+      <p>Mechanische Zusammenhänge anhand von Zeichnungen erkennen</p>
+    </header>
+
+    <section id="startScreen" class="content">
+      <div class="intro">
+        <p>
+          In diesem Test werden mechanische Situationen grafisch dargestellt.
+          Wähle jeweils die richtige Antwort aus drei Möglichkeiten.
+        </p>
+        <p>
+          Die Aufgaben behandeln Hebel, Zahnräder, Rollen, schiefe Ebenen
+          und einfache Kraftwirkungen.
+        </p>
+      </div>
+
+      <div class="info">
+        <div>
+          Aufgaben
+          <strong>10</strong>
+        </div>
+        <div>
+          Zeit pro Aufgabe
+          <strong>50 s</strong>
+        </div>
+        <div>
+          Antworten
+          <strong>3</strong>
+        </div>
+      </div>
+
+      <button id="startButton" class="main-button">
+        Test starten
+      </button>
+    </section>
+
+    <section id="quizScreen" class="content hidden">
+      <div class="quiz-header">
+        <div id="progress" class="progress"></div>
+        <div id="timer" class="timer">50 s</div>
+      </div>
+
+      <div class="bar">
+        <div id="barInner" class="bar-inner"></div>
+      </div>
+
+      <div id="category" class="category"></div>
+      <div id="question" class="question"></div>
+      <div id="graphic" class="graphic"></div>
+      <div id="answers" class="answers"></div>
+
+      <div id="feedback" class="feedback hidden"></div>
+
+      <button id="nextButton" class="next-button hidden">
+        Nächste Aufgabe
+      </button>
+    </section>
+
+    <section id="resultScreen" class="content hidden">
+      <div class="result">
+        <h2>Test beendet</h2>
+        <div id="score" class="score"></div>
+        <p id="resultText"></p>
+
+        <button id="restartButton" class="main-button">
+          Neuen Test starten
+        </button>
+      </div>
+
+      <div id="review" class="review"></div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL_QUESTIONS = 10;
+    const TIME_LIMIT = 50;
+
+    let questionNumber = 0;
+    let points = 0;
+    let time = TIME_LIMIT;
+    let timer = null;
+    let currentTask = null;
+    let history = [];
+
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const nextButton = document.getElementById("nextButton");
+
+    const progress = document.getElementById("progress");
+    const timerElement = document.getElementById("timer");
+    const barInner = document.getElementById("barInner");
+
+    const categoryElement = document.getElementById("category");
+    const questionElement = document.getElementById("question");
+    const graphicElement = document.getElementById("graphic");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+
+    const scoreElement = document.getElementById("score");
+    const resultText = document.getElementById("resultText");
+    const reviewElement = document.getElementById("review");
+
+    startButton.addEventListener("click", startQuiz);
+    restartButton.addEventListener("click", startQuiz);
+    nextButton.addEventListener("click", nextQuestion);
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+      clearInterval(timer);
+
+      questionNumber = 0;
+      points = 0;
+      history = [];
+
+      startScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      quizScreen.classList.remove("hidden");
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      clearInterval(timer);
+
+      currentTask = createRandomTask();
+
+      progress.textContent =
+        `Aufgabe ${questionNumber + 1} von ${TOTAL_QUESTIONS}`;
+
+      barInner.style.width =
+        `${((questionNumber + 1) / TOTAL_QUESTIONS) * 100}%`;
+
+      categoryElement.textContent = currentTask.category;
+      questionElement.textContent = currentTask.question;
+      graphicElement.innerHTML = currentTask.graphic;
+
+      answersElement.innerHTML = "";
+      feedbackElement.className = "feedback hidden";
+      feedbackElement.innerHTML = "";
+      nextButton.classList.add("hidden");
+
+      currentTask.answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+
+        button.className = "answer";
+        button.textContent =
+          `${String.fromCharCode(65 + index)}) ${answer.text}`;
+
+        button.addEventListener("click", () => {
+          chooseAnswer(index);
+        });
+
+        answersElement.appendChild(button);
+      });
+
+      time = TIME_LIMIT;
+      updateTimer();
+
+      timer = setInterval(() => {
+        time--;
+        updateTimer();
+
+        if (time <= 0) {
+          clearInterval(timer);
+          timeExpired();
+        }
+      }, 1000);
+    }
+
+    function updateTimer() {
+      timerElement.textContent = `${time} s`;
+      timerElement.classList.remove("warning", "danger");
+
+      if (time <= 10) {
+        timerElement.classList.add("danger");
+      } else if (time <= 20) {
+        timerElement.classList.add("warning");
+      }
+    }
+
+    function chooseAnswer(index) {
+      clearInterval(timer);
+
+      const buttons = document.querySelectorAll(".answer");
+      const selected = currentTask.answers[index];
+      const correctIndex = currentTask.answers.findIndex(
+        answer => answer.correct
+      );
+
+      buttons.forEach((button, buttonIndex) => {
+        button.disabled = true;
+
+        if (buttonIndex === correctIndex) {
+          button.classList.add("correct");
+        }
+
+        if (buttonIndex === index && !selected.correct) {
+          button.classList.add("wrong");
+        }
+      });
+
+      if (selected.correct) {
+        points++;
+
+        feedbackElement.className = "feedback success";
+        feedbackElement.innerHTML =
+          `<strong>Richtig!</strong><br>${currentTask.explanation}`;
+      } else {
+        feedbackElement.className = "feedback error";
+        feedbackElement.innerHTML =
+          `<strong>Falsch.</strong><br>${currentTask.explanation}`;
+      }
+
+      history.push({
+        question: currentTask.question,
+        answer: selected.text,
+        correct: selected.correct,
+        explanation: currentTask.explanation
+      });
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function timeExpired() {
+      const buttons = document.querySelectorAll(".answer");
+      const correctIndex = currentTask.answers.findIndex(
+        answer => answer.correct
+      );
+
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+
+        if (index === correctIndex) {
+          button.classList.add("correct");
+        }
+      });
+
+      feedbackElement.className = "feedback error";
+      feedbackElement.innerHTML =
+        `<strong>Zeit abgelaufen.</strong><br>${currentTask.explanation}`;
+
+      history.push({
+        question: currentTask.question,
+        answer: "Keine Antwort",
+        correct: false,
+        explanation: currentTask.explanation
+      });
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      questionNumber++;
+
+      if (questionNumber >= TOTAL_QUESTIONS) {
+        showResult();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function showResult() {
+      clearInterval(timer);
+
+      quizScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      const percentage = Math.round(points / TOTAL_QUESTIONS * 100);
+
+      scoreElement.textContent =
+        `${points} / ${TOTAL_QUESTIONS} Punkte`;
+
+      if (percentage >= 90) {
+        resultText.textContent =
+          "Sehr gute Leistung. Du erkennst mechanische Zusammenhänge sicher.";
+      } else if (percentage >= 70) {
+        resultText.textContent =
+          "Gute Leistung. Die meisten grafischen Aufgaben wurden richtig gelöst.";
+      } else if (percentage >= 50) {
+        resultText.textContent =
+          "Grundkenntnisse sind vorhanden. Einige Zusammenhänge solltest du noch üben.";
+      } else {
+        resultText.textContent =
+          "Die mechanischen Grundlagen sollten noch einmal wiederholt werden.";
+      }
+
+      reviewElement.innerHTML = "<h3>Aufgabenübersicht</h3>";
+
+      history.forEach((item, index) => {
+        const div = document.createElement("div");
+
+        div.className =
+          `review-item ${item.correct ? "" : "wrong"}`;
+
+        div.innerHTML =
+          `<strong>${index + 1}. ${item.correct ? "Richtig" : "Falsch"}</strong><br>` +
+          `${item.question}<br>` +
+          `<small>Antwort: ${item.answer}</small><br>` +
+          `<small>${item.explanation}</small>`;
+
+        reviewElement.appendChild(div);
+      });
+    }
+
+    /*
+     * -----------------------------
+     * AUFGABEN-GENERATOREN
+     * -----------------------------
+     */
+
+    function createRandomTask() {
+      const generators = [
+        createLeverTask,
+        createGearTask,
+        createPulleyTask,
+        createRampTask,
+        createThreeGearTask
+      ];
+
+      return randomItem(generators)();
+    }
+
+    function createLeverTask() {
+      const leftWeight = randomInt(2, 8);
+      const rightWeight = randomInt(2, 8);
+      const leftArm = randomInt(2, 6);
+      const rightArm = randomInt(2, 6);
+
+      const leftMoment = leftWeight * leftArm;
+      const rightMoment = rightWeight * rightArm;
+
+      let correct;
+      let explanation;
+
+      if (leftMoment > rightMoment) {
+        correct = "Die linke Seite bewegt sich nach unten.";
+        explanation =
+          "Links wirkt das größere Drehmoment.";
+      } else if (rightMoment > leftMoment) {
+        correct = "Die rechte Seite bewegt sich nach unten.";
+        explanation =
+          "Rechts wirkt das größere Drehmoment.";
+      } else {
+        correct = "Der Hebel bleibt waagerecht.";
+        explanation =
+          "Beide Drehmomente sind gleich groß.";
+      }
+
+      const answers = shuffle([
+        {
+          text: "Die linke Seite bewegt sich nach unten.",
+          correct: correct === "Die linke Seite bewegt sich nach unten."
+        },
+        {
+          text: "Die rechte Seite bewegt sich nach unten.",
+          correct: correct === "Die rechte Seite bewegt sich nach unten."
+        },
+        {
+          text: "Der Hebel bleibt waagerecht.",
+          correct: correct === "Der Hebel bleibt waagerecht."
+        }
+      ]);
+
+      return {
+        category: "Hebel",
+        question:
+          "Welche Seite des Hebels bewegt sich nach unten?",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <line x1="90" y1="135" x2="560" y2="135"
+                  stroke="#222" stroke-width="10"
+                  stroke-linecap="round"/>
+
+            <polygon points="305,170 345,170 325,125"
+                     fill="#1769aa"/>
+
+            <line x1="130" y1="135" x2="130" y2="70"
+                  stroke="#dc3545" stroke-width="4"
+                  marker-end="url(#arrowDown)"/>
+
+            <line x1="520" y1="135" x2="520" y2="70"
+                  stroke="#dc3545" stroke-width="4"
+                  marker-end="url(#arrowDown)"/>
+
+            <circle cx="130" cy="135" r="25"
+                    fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <circle cx="520" cy="135" r="25"
+                    fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <text x="105" y="143" font-size="18">${leftWeight} kg</text>
+            <text x="495" y="143" font-size="18">${rightWeight} kg</text>
+
+            <text x="155" y="205" font-size="16">
+              Hebelarm: ${leftArm}
+            </text>
+
+            <text x="425" y="205" font-size="16">
+              Hebelarm: ${rightArm}
+            </text>
+
+            <defs>
+              <marker id="arrowDown" markerWidth="10" markerHeight="10"
+                      refX="5" refY="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#dc3545"/>
+              </marker>
+            </defs>
+          </svg>
+        `,
+        answers,
+        explanation:
+          `${explanation} Links: ${leftWeight} × ${leftArm} = ${leftMoment}. ` +
+          `Rechts: ${rightWeight} × ${rightArm} = ${rightMoment}.`
+      };
+    }
+
+    function createGearTask() {
+      const clockwise = Math.random() > 0.5;
+
+      const inputDirection = clockwise ? "↻" : "↺";
+      const outputDirection = clockwise ? "↺" : "↻";
+
+      return {
+        category: "Zahnräder",
+        question:
+          "Das linke Zahnrad dreht sich in der dargestellten Richtung. " +
+          "In welche Richtung dreht sich das rechte Zahnrad?",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <circle cx="230" cy="115" r="68"
+                    fill="#b9d9f2" stroke="#1769aa" stroke-width="5"/>
+            <circle cx="420" cy="115" r="43"
+                    fill="#ccebd8" stroke="#198754" stroke-width="5"/>
+
+            <text x="205" y="130" font-size="45">${inputDirection}</text>
+            <text x="402" y="130" font-size="38">?</text>
+
+            <text x="190" y="205" font-size="17">
+              Antrieb
+            </text>
+
+            <text x="385" y="205" font-size="17">
+              Abtrieb
+            </text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: "↻ Im Uhrzeigersinn",
+            correct: outputDirection === "↻"
+          },
+          {
+            text: "↺ Gegen den Uhrzeigersinn",
+            correct: outputDirection === "↺"
+          },
+          {
+            text: "Das Zahnrad bleibt stehen",
+            correct: false
+          }
+        ]),
+        explanation:
+          "Zwei direkt miteinander kämmende Zahnräder drehen sich immer in entgegengesetzte Richtungen."
+      };
+    }
+
+    function createPulleyTask() {
+      const load = randomInt(40, 120);
+      const correctForce = load / 2;
+
+      return {
+        category: "Rolle und Flaschenzug",
+        question:
+          `Die Last wiegt ${load} N. Wie groß ist die notwendige Zugkraft ` +
+          "bei einer idealen losen Rolle?",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <line x1="125" y1="35" x2="525" y2="35"
+                  stroke="#333" stroke-width="8"/>
+
+            <line x1="250" y1="35" x2="250" y2="112"
+                  stroke="#333" stroke-width="4"/>
+
+            <circle cx="325" cy="135" r="48"
+                    fill="#d9eafe" stroke="#1769aa" stroke-width="5"/>
+
+            <path d="M250 35 V135 A75 75 0 0 0 400 135 V60"
+                  fill="none"
+                  stroke="#8b5e3c"
+                  stroke-width="6"/>
+
+            <rect x="302" y="180" width="46" height="26"
+                  fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <text x="287" y="222" font-size="17">
+              Last: ${load} N
+            </text>
+
+            <text x="415" y="86" font-size="17">
+              ziehen
+            </text>
+
+            <line x1="430" y1="70" x2="430" y2="120"
+                  stroke="#dc3545" stroke-width="4"
+                  marker-end="url(#pulleyArrow)"/>
+
+            <defs>
+              <marker id="pulleyArrow" markerWidth="10" markerHeight="10"
+                      refX="5" refY="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#dc3545"/>
+              </marker>
+            </defs>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: `${correctForce} N – halb so viel Kraft`,
+            correct: true
+          },
+          {
+            text: `${load} N – genauso viel Kraft`,
+            correct: false
+          },
+          {
+            text: `${load * 2} N – doppelt so viel Kraft`,
+            correct: false
+          }
+        ]),
+        explanation:
+          `Eine ideale lose Rolle verteilt die Last auf zwei Seilabschnitte. ` +
+          `${load} N / 2 = ${correctForce} N.`
+      };
+    }
+
+    function createRampTask() {
+      const firstIsFlat = Math.random() > 0.5;
+
+      const leftLabel = firstIsFlat ? "A" : "B";
+      const rightLabel = firstIsFlat ? "B" : "A";
+      const correct = firstIsFlat ? "A" : "B";
+
+      return {
+        category: "Schiefe Ebene",
+        question:
+          "Auf welcher Rampe ist die notwendige Zugkraft geringer?",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <line x1="40" y1="190" x2="610" y2="190"
+                  stroke="#555" stroke-width="5"/>
+
+            <line x1="70" y1="165" x2="280" y2="165"
+                  stroke="#1769aa" stroke-width="8"/>
+
+            <line x1="370" y1="165" x2="570" y2="70"
+                  stroke="#dc3545" stroke-width="8"/>
+
+            <rect x="150" y="138" width="38" height="27"
+                  fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <rect x="440" y="114" width="38" height="27"
+                  transform="rotate(-25 459 127)"
+                  fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <text x="165" y="215" font-size="22">${leftLabel}</text>
+            <text x="465" y="215" font-size="22">${rightLabel}</text>
+
+            <text x="90" y="45" font-size="17">
+              flachere Rampe
+            </text>
+
+            <text x="420" y="45" font-size="17">
+              steilere Rampe
+            </text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: `Rampe ${correct}`,
+            correct: true
+          },
+          {
+            text: `Die andere Rampe`,
+            correct: false
+          },
+          {
+            text: "Bei beiden Rampen ist die Kraft gleich groß",
+            correct: false
+          }
+        ]),
+        explanation:
+          "Eine flachere Rampe benötigt bei gleicher Höhe weniger Zugkraft, dafür ist der Weg länger."
+      };
+    }
+
+    function createThreeGearTask() {
+      const firstClockwise = Math.random() > 0.5;
+      const lastClockwise = firstClockwise;
+
+      return {
+        category: "Zahnradkette",
+        question:
+          "Das erste Zahnrad dreht sich in der gezeigten Richtung. " +
+          "Welche Richtung hat das dritte Zahnrad?",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <circle cx="150" cy="115" r="47"
+                    fill="#b9d9f2" stroke="#1769aa" stroke-width="5"/>
+
+            <circle cx="325" cy="115" r="35"
+                    fill="#ccebd8" stroke="#198754" stroke-width="5"/>
+
+            <circle cx="495" cy="115" r="47"
+                    fill="#f6d8a8" stroke="#c77b00" stroke-width="5"/>
+
+            <text x="128" y="130" font-size="35">
+              ${firstClockwise ? "↻" : "↺"}
+            </text>
+
+            <text x="305" y="128" font-size="30">?</text>
+            <text x="475" y="130" font-size="35">?</text>
+
+            <text x="140" y="200" font-size="17">1</text>
+            <text x="315" y="200" font-size="17">2</text>
+            <text x="485" y="200" font-size="17">3</text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: lastClockwise ? "↻ Im Uhrzeigersinn" : "↺ Gegen den Uhrzeigersinn",
+            correct: true
+          },
+          {
+            text: lastClockwise ? "↺ Gegen den Uhrzeigersinn" : "↻ Im Uhrzeigersinn",
+            correct: false
+          },
+          {
+            text: "Das dritte Zahnrad bewegt sich nicht",
+            correct: false
+          }
+        ]),
+        explanation:
+          "Bei drei Zahnrädern wechseln sich die Drehrichtungen zweimal. " +
+          "Das erste und das dritte Zahnrad drehen sich daher gleich."
+      };
+    }
+  </script>
+</body>
+</html>

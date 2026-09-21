@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rechen- und Textaufgaben</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #1d4ed8;
+        }
+
+        .intro {
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 13px 18px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .start-button,
+        .next-button {
+            display: block;
+            margin: 25px auto 0;
+            background: #2563eb;
+            color: white;
+        }
+
+        .start-button:hover,
+        .next-button:hover {
+            background: #1d4ed8;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .info-box {
+            flex: 1;
+            min-width: 150px;
+            padding: 13px;
+            border-radius: 8px;
+            background: #eff6ff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .timer {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .timer.warning {
+            background: #fee2e2;
+            color: #991b1b;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.55;
+            }
+        }
+
+        .question-type {
+            color: #2563eb;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .question {
+            font-size: 21px;
+            line-height: 1.5;
+            margin: 12px 0 22px;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .answer-button {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            color: #1f2937;
+            text-align: left;
+        }
+
+        .answer-button:hover:not(:disabled) {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+
+        .answer-button.correct {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #166534;
+        }
+
+        .answer-button.wrong {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #991b1b;
+        }
+
+        .answer-button:disabled {
+            cursor: default;
+        }
+
+        .feedback {
+            min-height: 30px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 17px;
+        }
+
+        .feedback.correct {
+            color: #15803d;
+        }
+
+        .feedback.wrong {
+            color: #b91c1c;
+        }
+
+        .next-button {
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            background: white;
+        }
+
+        th,
+        td {
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #dbeafe;
+            color: #1e3a8a;
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .result h2 {
+            color: #1d4ed8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .answer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .question {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <section id="startScreen" class="card">
+            <h1>Rechen- und Textaufgaben</h1>
+
+            <p class="intro">
+                Löse Aufgaben aus dem Arbeitsalltag zu Dreisatz, Prozentrechnung
+                und Tabellen. Jede Aufgabe hat vier Antwortmöglichkeiten.
+                Für jede Aufgabe stehen dir 60 Sekunden zur Verfügung.
+            </p>
+
+            <button class="start-button" onclick="startQuiz()">
+                Quiz starten
+            </button>
+        </section>
+
+        <section id="quizScreen" class="card hidden">
+            <div class="top-bar">
+                <div class="info-box">
+                    Aufgabe:
+                    <span id="questionNumber">1</span>
+                </div>
+
+                <div class="info-box">
+                    Punkte:
+                    <span id="score">0</span>
+                </div>
+
+                <div id="timerBox" class="info-box timer">
+                    Zeit:
+                    <span id="timer">60</span> s
+                </div>
+            </div>
+
+            <div id="questionType" class="question-type"></div>
+            <div id="questionText" class="question"></div>
+
+            <div id="tableContainer"></div>
+
+            <div id="answers" class="answer-grid"></div>
+
+            <div id="feedback" class="feedback"></div>
+
+            <button id="nextButton" class="next-button" onclick="nextQuestion()">
+                Nächste Aufgabe
+            </button>
+        </section>
+
+        <section id="resultScreen" class="card hidden">
+            <div class="result">
+                <h2>Quiz beendet</h2>
+                <p id="resultText"></p>
+
+                <button class="start-button" onclick="startQuiz()">
+                    Neues Quiz starten
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentQuestion = null;
+        let questionNumber = 0;
+        let score = 0;
+        let timerValue = 60;
+        let timerInterval = null;
+        let questionLocked = false;
+
+        const MAX_QUESTIONS = 10;
+        const TIME_PER_QUESTION = 60;
+
+        function randomInteger(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomChoice(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function roundToTwo(value) {
+            return Math.round(value * 100) / 100;
+        }
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat("de-DE", {
+                minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        function formatEuro(value) {
+            return `${formatNumber(value)} €`;
+        }
+
+        function formatPercent(value) {
+            return `${formatNumber(value)} %`;
+        }
+
+        function createOptions(correctAnswer, unit = "") {
+            const options = new Set();
+            const correct = roundToTwo(correctAnswer);
+
+            options.add(correct);
+
+            while (options.size < 4) {
+                let variation;
+
+                if (correct >= 100) {
+                    variation = randomChoice([
+                        correct * 0.8,
+                        correct * 0.9,
+                        correct * 1.1,
+                        correct * 1.2,
+                        correct - randomInteger(5, 30),
+                        correct + randomInteger(5, 30)
+                    ]);
+                } else if (correct >= 20) {
+                    variation = correct + randomChoice([
+                        -10, -5, -2, 2, 5, 10
+                    ]);
+                } else {
+                    variation = correct + randomChoice([
+                        -5, -2, -1, 1, 2, 5
+                    ]);
+                }
+
+                variation = Math.max(0, roundToTwo(variation));
+
+                if (variation !== correct) {
+                    options.add(variation);
+                }
+            }
+
+            const shuffled = Array.from(options).sort(() => Math.random() - 0.5);
+
+            return {
+                values: shuffled,
+                correctIndex: shuffled.indexOf(correct),
+                unit: unit
+            };
+        }
+
+        function generateRuleOfThreeQuestion() {
+            const quantityA = randomInteger(2, 15);
+            const quantityB = randomInteger(quantityA + 1, quantityA + 35);
+            const pricePerUnit = randomInteger(2, 25);
+
+            const totalA = quantityA * pricePerUnit;
+            const correctAnswer = quantityB * pricePerUnit;
+
+            const options = createOptions(correctAnswer, "€");
+
+            return {
+                type: "Dreisatz",
+                text:
+                    `${quantityA} Verpackungen kosten ${formatEuro(totalA)}. ` +
+                    `Wie viel kosten ${quantityB} Verpackungen?`,
+                options: options,
+                answerText: formatEuro(correctAnswer)
+            };
+        }
+
+        function generatePercentageQuestion() {
+            const basicValue = randomInteger(50, 800);
+            const percentage = randomChoice([5, 10, 15, 20, 25, 30, 40, 50]);
+
+            const correctAnswer = roundToTwo(basicValue * percentage / 100);
+            const options = createOptions(correctAnswer, "€");
+
+            return {
+                type: "Prozentrechnung",
+                text:
+                    `In einem Betrieb beträgt der Monatsumsatz ${formatEuro(basicValue)}. ` +
+                    `Wie viel sind ${formatPercent(percentage)} davon?`,
+                options: options,
+                answerText: formatEuro(correctAnswer)
+            };
+        }
+
+        function generateTableQuestion() {
+            const products = [
+                "Druckerpapier",
+                "Kugelschreiber",
+                "Ordner",
+                "Notizblöcke",
+                "Briefumschläge",
+                "Versandkartons"
+            ];
+
+            const selectedProducts = products
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4);
+
+            const rows = selectedProducts.map(product => {
+                const quantity = randomInteger(2, 30);
+                const price = roundToTwo(randomInteger(1, 20) + 0.5);
+
+                return {
+                    product,
+                    quantity,
+                    price,
+                    total: roundToTwo(quantity * price)
+                };
+            });
+
+            const selectedRow = randomChoice(rows);
+            const questionMode = randomChoice(["total", "quantity"]);
+
+            let text;
+            let correctAnswer;
+            let answerText;
+            let options;
+
+            if (questionMode === "total") {
+                text =
+                    `Wie hoch sind die Gesamtkosten für ` +
+                    `${selectedRow.product}?`;
+
+                correctAnswer = selectedRow.total;
+                answerText = formatEuro(correctAnswer);
+                options = createOptions(correctAnswer, "€");
+            } else {
+                text =
+                    `Wie viele Stück von ${selectedRow.product} wurden bestellt?`;
+
+                correctAnswer = selectedRow.quantity;
+                answerText = `${formatNumber(correctAnswer)} Stück`;
+                options = createOptions(correctAnswer, "Stück");
+            }
+
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Artikel</th>
+                            <th>Menge</th>
+                            <th>Einzelpreis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map(row => `
+                            <tr>
+                                <td>${row.product}</td>
+                                <td>${row.quantity}</td>
+                                <td>${formatEuro(row.price)}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+
+            return {
+                type: "Tabellenaufgabe",
+                text: text,
+                table: tableHTML,
+                options: options,
+                answerText: answerText
+            };
+        }
+
+        function generateQuestion() {
+            const questionTypes = [
+                generateRuleOfThreeQuestion,
+                generatePercentageQuestion,
+                generateTableQuestion
+            ];
+
+            return randomChoice(questionTypes)();
+        }
+
+        function startQuiz() {
+            clearInterval(timerInterval);
+
+            questionNumber = 0;
+            score = 0;
+
+            document.getElementById("startScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.add("hidden");
+            document.getElementById("quizScreen").classList.remove("hidden");
+
+            document.getElementById("score").textContent = score;
+
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (questionNumber >= MAX_QUESTIONS) {
+                endQuiz();
+                return;
+            }
+
+            questionNumber++;
+            questionLocked = false;
+            timerValue = TIME_PER_QUESTION;
+
+            currentQuestion = generateQuestion();
+
+            document.getElementById("questionNumber").textContent =
+                `${questionNumber} / ${MAX_QUESTIONS}`;
+
+            document.getElementById("questionType").textContent =
+                currentQuestion.type;
+
+            document.getElementById("questionText").textContent =
+                currentQuestion.text;
+
+            document.getElementById("tableContainer").innerHTML =
+                currentQuestion.table || "";
+
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("feedback").className = "feedback";
+
+            const nextButton = document.getElementById("nextButton");
+            nextButton.style.display = "none";
+
+            const answersContainer = document.getElementById("answers");
+            answersContainer.innerHTML = "";
+
+            currentQuestion.options.values.forEach((value, index) => {
+                const button = document.createElement("button");
+                button.className = "answer-button";
+
+                let label;
+
+                if (currentQuestion.options.unit === "€") {
+                    label = formatEuro(value);
+                } else if (currentQuestion.options.unit === "Stück") {
+                    label = `${formatNumber(value)} Stück`;
+                } else {
+                    label = formatNumber(value);
+                }
+
+                button.textContent = label;
+                button.onclick = () => checkAnswer(index, button);
+
+                answersContainer.appendChild(button);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timerValue--;
+                updateTimerDisplay();
+
+                if (timerValue <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerElement = document.getElementById("timer");
+            const timerBox = document.getElementById("timerBox");
+
+            timerElement.textContent = timerValue;
+
+            if (timerValue <= 10) {
+                timerBox.classList.add("warning");
+            } else {
+                timerBox.classList.remove("warning");
+            }
+        }
+
+        function checkAnswer(selectedIndex, selectedButton) {
+            if (questionLocked) {
+                return;
+            }
+
+            questionLocked = true;
+            clearInterval(timerInterval);
+
+            const buttons = document.querySelectorAll(".answer-button");
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+
+            const correctIndex = currentQuestion.options.correctIndex;
+            const feedback = document.getElementById("feedback");
+
+            if (selectedIndex === correctIndex) {
+                selectedButton.classList.add("correct");
+                score++;
+                document.getElementById("score").textContent = score;
+
+                feedback.textContent = "Richtig!";
+                feedback.classList.add("correct");
+            } else {
+                selectedButton.classList.add("wrong");
+                buttons[correctIndex].classList.add("correct");
+
+                feedback.textContent =
+                    `Falsch. Die richtige Antwort lautet: ` +
+                    `${currentQuestion.answerText}`;
+
+                feedback.classList.add("wrong");
+            }
+
+            document.getElementById("nextButton").style.display = "block";
+        }
+
+        function handleTimeout() {
+            if (questionLocked) {
+                return;
+            }
+
+            questionLocked = true;
+
+            const buttons = document.querySelectorAll(".answer-button");
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+
+            const correctIndex = currentQuestion.options.correctIndex;
+            buttons[correctIndex].classList.add("correct");
+
+            const feedback = document.getElementById("feedback");
+            feedback.textContent =
+                `Die Zeit ist abgelaufen. Die richtige Antwort lautet: ` +
+                `${currentQuestion.answerText}`;
+
+            feedback.classList.add("wrong");
+
+            document.getElementById("nextButton").style.display = "block";
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval);
+
+            document.getElementById("quizScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.remove("hidden");
+
+            const percentage = Math.round((score / MAX_QUESTIONS) * 100);
+
+            let evaluation;
+
+            if (percentage >= 90) {
+                evaluation = "Hervorragend!";
+            } else if (percentage >= 70) {
+                evaluation = "Sehr gut!";
+            } else if (percentage >= 50) {
+                evaluation = "Solide Leistung.";
+            } else {
+                evaluation = "Weiter üben lohnt sich.";
+            }
+
+            document.getElementById("resultText").innerHTML = `
+                Du hast <strong>${score} von ${MAX_QUESTIONS}</strong> Aufgaben richtig gelöst.
+                <br>
+                Ergebnis: <strong>${percentage} %</strong>
+                <br><br>
+                ${evaluation}
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Logik-Schlussfolgerungen</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f0ff, #f8fbff);
+            color: #1f2937;
+        }
+
+        .container {
+            width: min(900px, 94%);
+            margin: 30px auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #1d4ed8;
+        }
+
+        .beschreibung {
+            text-align: center;
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 25px;
+        }
+
+        .statuszeile {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .timer {
+            color: #dc2626;
+        }
+
+        .timer.warnung {
+            animation: blink 0.8s infinite alternate;
+        }
+
+        @keyframes blink {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0.45;
+            }
+        }
+
+        .bereich {
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 18px 0;
+        }
+
+        .bereich h2 {
+            margin-top: 0;
+            color: #374151;
+            font-size: 1.2rem;
+        }
+
+        #text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+        }
+
+        #schlussfolgerung {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .antworten {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 14px 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-richtig {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-falsch {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-unbestimmt {
+            background: #d97706;
+            color: white;
+        }
+
+        .feedback {
+            min-height: 30px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .feedback.richtig {
+            color: #15803d;
+        }
+
+        .feedback.falsch {
+            color: #b91c1c;
+        }
+
+        .neustart {
+            display: block;
+            margin: 25px auto 0;
+            background: #1d4ed8;
+            color: white;
+            padding: 12px 25px;
+        }
+
+        @media (max-width: 650px) {
+            .container {
+                padding: 20px;
+                margin: 15px auto;
+            }
+
+            .antworten {
+                grid-template-columns: 1fr;
+            }
+
+            .statuszeile {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            #text,
+            #schlussfolgerung {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Logik-Schlussfolgerungen</h1>
+
+    <div class="beschreibung">
+        Lies den Text aufmerksam durch. Verwende ausschließlich die Informationen
+        aus dem Text und entscheide, ob die Schlussfolgerung logisch richtig,
+        falsch oder unbestimmt ist.
+    </div>
+
+    <div class="statuszeile">
+        <span id="aufgabe">Aufgabe 1</span>
+        <span id="punkte">Richtig: 0 | Falsch: 0</span>
+        <span id="timer" class="timer">Zeit: 90 Sekunden</span>
+    </div>
+
+    <div class="bereich">
+        <h2>Text</h2>
+        <div id="text"></div>
+    </div>
+
+    <div class="bereich">
+        <h2>Schlussfolgerung</h2>
+        <div id="schlussfolgerung"></div>
+    </div>
+
+    <div class="antworten">
+        <button
+            id="btn-richtig"
+            class="btn-richtig"
+            onclick="antwortPruefen('richtig')">
+            Logisch richtig
+        </button>
+
+        <button
+            id="btn-falsch"
+            class="btn-falsch"
+            onclick="antwortPruefen('falsch')">
+            Falsch
+        </button>
+
+        <button
+            id="btn-unbestimmt"
+            class="btn-unbestimmt"
+            onclick="antwortPruefen('unbestimmt')">
+            Unbestimmt
+        </button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <button class="neustart" onclick="neustart()">
+        Test neu starten
+    </button>
+</div>
+
+<script>
+    const namen = [
+        "Anna",
+        "Ben",
+        "Clara",
+        "David",
+        "Emil",
+        "Fiona",
+        "Greta",
+        "Hannes",
+        "Ida",
+        "Jonas"
+    ];
+
+    const eigenschaften = [
+        "geduldig",
+        "aufmerksam",
+        "sportlich",
+        "zuverlässig",
+        "freundlich",
+        "vorsichtig",
+        "kreativ",
+        "pünktlich",
+        "neugierig",
+        "ruhig"
+    ];
+
+    const zeitProAufgabe = 90;
+
+    let fakten = [];
+    let schlussfolgerung = null;
+    let richtigeLoesung = null;
+
+    let aufgabenNummer = 0;
+    let richtigeAntworten = 0;
+    let falscheAntworten = 0;
+
+    let verbleibendeZeit = zeitProAufgabe;
+    let timer = null;
+    let aufgabeAktiv = false;
+
+    const textElement = document.getElementById("text");
+    const schlussElement = document.getElementById("schlussfolgerung");
+    const feedbackElement = document.getElementById("feedback");
+    const timerElement = document.getElementById("timer");
+    const aufgabeElement = document.getElementById("aufgabe");
+    const punkteElement = document.getElementById("punkte");
+
+    const buttons = [
+        document.getElementById("btn-richtig"),
+        document.getElementById("btn-falsch"),
+        document.getElementById("btn-unbestimmt")
+    ];
+
+    function zufallsElement(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function mischen(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function faktSchluessel(fakt) {
+        return `${fakt.name}|${fakt.eigenschaft}|${fakt.wahrheit}`;
+    }
+
+    function atomSchluessel(fakt) {
+        return `${fakt.name}|${fakt.eigenschaft}`;
+    }
+
+    function formuliereFakt(fakt) {
+        if (fakt.wahrheit) {
+            return `${fakt.name} ist ${fakt.eigenschaft}.`;
+        }
+
+        return `${fakt.name} ist nicht ${fakt.eigenschaft}.`;
+    }
+
+    function erzeugeAlleMoeglichenFakten() {
+        const alleFakten = [];
+
+        for (const name of namen) {
+            for (const eigenschaft of eigenschaften) {
+                alleFakten.push({
+                    name: name,
+                    eigenschaft: eigenschaft,
+                    wahrheit: true
+                });
+            }
+        }
+
+        return alleFakten;
+    }
+
+    function erzeugeNeueAufgabe() {
+        clearInterval(timer);
+
+        aufgabeAktiv = true;
+        verbleibendeZeit = zeitProAufgabe;
+        aufgabenNummer++;
+
+        feedbackElement.textContent = "";
+        feedbackElement.className = "feedback";
+
+        buttons.forEach(button => {
+            button.disabled = false;
+        });
+
+        const alleFakten = erzeugeAlleMoeglichenFakten();
+
+        // Zwischen 5 und 9 Fakten werden zufällig ausgewählt.
+        const anzahlFakten = Math.floor(Math.random() * 5) + 5;
+
+        fakten = mischen([...alleFakten]).slice(0, anzahlFakten);
+
+        const moeglicheArten = [
+            "richtig",
+            "falsch",
+            "unbestimmt"
+        ];
+
+        const art = zufallsElement(moeglicheArten);
+
+        if (art === "richtig") {
+            // Die Schlussfolgerung steht direkt im Text.
+            schlussfolgerung = { ...zufallsElement(fakten) };
+            richtigeLoesung = "richtig";
+        }
+
+        if (art === "falsch") {
+            // Die Schlussfolgerung widerspricht einem Fakt aus dem Text.
+            const fakt = zufallsElement(fakten);
+
+            schlussfolgerung = {
+                name: fakt.name,
+                eigenschaft: fakt.eigenschaft,
+                wahrheit: !fakt.wahrheit
+            };
+
+            richtigeLoesung = "falsch";
+        }
+
+        if (art === "unbestimmt") {
+            // Eine Eigenschaft wird gesucht, die weder im Text
+            // noch als Gegenteil im Text vorkommt.
+            const vorhandeneAtome = fakten.map(atomSchluessel);
+
+            const unbekannteFakten = alleFakten.filter(fakt => {
+                return !vorhandeneAtome.includes(atomSchluessel(fakt));
+            });
+
+            schlussfolgerung = {
+                ...zufallsElement(unbekannteFakten),
+                wahrheit: Math.random() >= 0.5
+            };
+
+            richtigeLoesung = "unbestimmt";
+        }
+
+        const sortierteFakten = mischen([...fakten]);
+
+        textElement.textContent = sortierteFakten
+            .map(formuliereFakt)
+            .join(" ");
+
+        schlussElement.textContent = formuliereFakt(schlussfolgerung);
+
+        aktualisiereAnzeige();
+        starteTimer();
+    }
+
+    function aktualisiereAnzeige() {
+        aufgabeElement.textContent = `Aufgabe ${aufgabenNummer}`;
+        punkteElement.textContent =
+            `Richtig: ${richtigeAntworten} | Falsch: ${falscheAntworten}`;
+
+        timerElement.textContent =
+            `Zeit: ${verbleibendeZeit} Sekunden`;
+
+        if (verbleibendeZeit <= 10) {
+            timerElement.classList.add("warnung");
+        } else {
+            timerElement.classList.remove("warnung");
+        }
+    }
+
+    function starteTimer() {
+        timer = setInterval(() => {
+            if (!aufgabeAktiv) {
+                return;
+            }
+
+            verbleibendeZeit--;
+            aktualisiereAnzeige();
+
+            if (verbleibendeZeit <= 0) {
+                clearInterval(timer);
+                zeitAbgelaufen();
+            }
+        }, 1000);
+    }
+
+    function sperreAntworten() {
+        buttons.forEach(button => {
+            button.disabled = true;
+        });
+    }
+
+    function antwortPruefen(antwort) {
+        if (!aufgabeAktiv) {
+            return;
+        }
+
+        aufgabeAktiv = false;
+        clearInterval(timer);
+        sperreAntworten();
+
+        if (antwort === richtigeLoesung) {
+            richtigeAntworten++;
+
+            feedbackElement.textContent = "Richtig!";
+            feedbackElement.className = "feedback richtig";
+        } else {
+            falscheAntworten++;
+
+            feedbackElement.textContent =
+                `Falsch. Die richtige Antwort lautet: ${richtigeLoesung}.`;
+
+            feedbackElement.className = "feedback falsch";
+        }
+
+        aktualisiereAnzeige();
+
+        // Nach kurzer Zeit automatisch zur nächsten Aufgabe wechseln.
+        setTimeout(erzeugeNeueAufgabe, 1400);
+    }
+
+    function zeitAbgelaufen() {
+        if (!aufgabeAktiv) {
+            return;
+        }
+
+        aufgabeAktiv = false;
+        falscheAntworten++;
+
+        sperreAntworten();
+
+        feedbackElement.textContent =
+            `Die Zeit ist abgelaufen. Richtige Antwort: ${richtigeLoesung}.`;
+
+        feedbackElement.className = "feedback falsch";
+
+        aktualisiereAnzeige();
+
+        setTimeout(erzeugeNeueAufgabe, 1800);
+    }
+
+    function neustart() {
+        clearInterval(timer);
+
+        aufgabenNummer = 0;
+        richtigeAntworten = 0;
+        falscheAntworten = 0;
+
+        erzeugeNeueAufgabe();
+    }
+
+    // Erste Aufgabe starten
+    erzeugeNeueAufgabe();
+</script>
+
+</body>
+</html>

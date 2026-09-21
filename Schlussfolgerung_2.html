@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aussagen überprüfen</title>
+
+  <style>
+    :root {
+      --blau: #2563eb;
+      --blau-dunkel: #1d4ed8;
+      --gruen: #15803d;
+      --rot: #b91c1c;
+      --gelb: #b45309;
+      --grau: #f3f4f6;
+      --text: #1f2937;
+      --rand: #d1d5db;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, #dbeafe, #f8fafc);
+    }
+
+    .app {
+      width: min(950px, 94%);
+      margin: 30px auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--blau);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.95;
+    }
+
+    main {
+      padding: 28px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .instructions {
+      line-height: 1.65;
+      font-size: 17px;
+    }
+
+    .info-box {
+      margin: 22px 0;
+      padding: 18px;
+      border-left: 5px solid var(--blau);
+      background: #eff6ff;
+      border-radius: 8px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 25px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 13px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: var(--blau);
+      color: white;
+    }
+
+    .primary:hover {
+      background: var(--blau-dunkel);
+    }
+
+    .secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .progress-area {
+      margin-bottom: 22px;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .progress-value {
+      height: 100%;
+      background: var(--blau);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .timer {
+      display: inline-block;
+      padding: 9px 15px;
+      border-radius: 20px;
+      background: #dcfce7;
+      color: var(--gruen);
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .timer.warning {
+      background: #fef3c7;
+      color: var(--gelb);
+    }
+
+    .timer.danger {
+      background: #fee2e2;
+      color: var(--rot);
+    }
+
+    .text-card,
+    .question-card,
+    .result-card {
+      border: 1px solid var(--rand);
+      border-radius: 12px;
+      padding: 23px;
+      margin-bottom: 22px;
+    }
+
+    .text-card {
+      background: #fafafa;
+      line-height: 1.75;
+      font-size: 17px;
+    }
+
+    .text-card h2,
+    .question-card h2,
+    .result-card h2 {
+      margin-top: 0;
+    }
+
+    .question-card {
+      background: white;
+    }
+
+    .statement {
+      font-size: 21px;
+      line-height: 1.5;
+      padding: 18px;
+      margin: 20px 0;
+      background: #f9fafb;
+      border-radius: 10px;
+      border-left: 5px solid var(--blau);
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .answer-button {
+      min-height: 58px;
+      border: 2px solid var(--rand);
+      background: white;
+      font-weight: bold;
+    }
+
+    .answer-button:hover {
+      border-color: var(--blau);
+      background: #eff6ff;
+    }
+
+    .answer-button.selected {
+      background: var(--blau);
+      border-color: var(--blau);
+      color: white;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .feedback.correct {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .feedback.incorrect {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .results-summary {
+      text-align: center;
+      font-size: 20px;
+      margin: 25px 0;
+    }
+
+    .score {
+      font-size: 42px;
+      font-weight: bold;
+      color: var(--blau);
+      margin: 12px;
+    }
+
+    .result-list {
+      margin-top: 25px;
+    }
+
+    .result-item {
+      border: 1px solid var(--rand);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+
+    .result-item.good {
+      border-left: 5px solid var(--gruen);
+    }
+
+    .result-item.bad {
+      border-left: 5px solid var(--rot);
+    }
+
+    @media (max-width: 700px) {
+      main {
+        padding: 18px;
+      }
+
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .progress-top {
+        flex-direction: column;
+      }
+
+      header h1 {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <h1>Aussagen überprüfen</h1>
+      <p>Bewerte ausschließlich anhand der Informationen im Text.</p>
+    </header>
+
+    <main>
+      <!-- Startseite -->
+      <section id="startScreen">
+        <div class="instructions">
+          <h2>Aufgabe</h2>
+
+          <p>
+            Lies den folgenden Sachtext sorgfältig. Anschließend werden dir mehrere
+            Aussagen zum Text angezeigt.
+          </p>
+
+          <p>
+            Entscheide für jede Aussage, ob sie anhand des Textes als
+            <strong>richtig</strong>, <strong>unbestimmt</strong> oder
+            <strong>falsch</strong> zu bewerten ist.
+          </p>
+
+          <div class="info-box">
+            <strong>Wichtig:</strong>
+            Verwende ausschließlich die Informationen aus dem angezeigten Text.
+            Eigenes Wissen darf nicht verwendet werden.
+          </div>
+
+          <ul>
+            <li>Der Text wird zuerst ohne Zeitbegrenzung angezeigt.</li>
+            <li>Danach folgen die Aufgaben.</li>
+            <li>Für jede Aufgabe stehen 50 Sekunden zur Verfügung.</li>
+            <li>Bei Ablauf der Zeit wird automatisch zur nächsten Aufgabe gewechselt.</li>
+            <li>Die Texte und Aussagen werden bei jedem Durchlauf neu zusammengestellt.</li>
+          </ul>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="startReadingButton">
+            Text lesen
+          </button>
+        </div>
+      </section>
+
+      <!-- Leseseite -->
+      <section id="readingScreen" class="hidden">
+        <div class="text-card">
+          <h2 id="readingTitle"></h2>
+          <p id="readingText"></p>
+        </div>
+
+        <div class="info-box">
+          Lies den Text aufmerksam. Wenn du bereit bist, kannst du zu den Aufgaben wechseln.
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="startQuestionsButton">
+            Zu den Aufgaben
+          </button>
+        </div>
+      </section>
+
+      <!-- Aufgabenseite -->
+      <section id="questionScreen" class="hidden">
+        <div class="progress-area">
+          <div class="progress-top">
+            <span id="questionCounter"></span>
+            <span id="scoreCounter"></span>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-value" id="progressValue"></div>
+          </div>
+        </div>
+
+        <div class="timer" id="timer">
+          Verbleibende Zeit: 50 Sekunden
+        </div>
+
+        <div class="question-card">
+          <h2>Wie ist die Aussage zu bewerten?</h2>
+
+          <div class="statement" id="statement"></div>
+
+          <div class="answers">
+            <button class="answer-button" data-answer="richtig">
+              Richtig
+            </button>
+
+            <button class="answer-button" data-answer="unbestimmt">
+              Unbestimmt
+            </button>
+
+            <button class="answer-button" data-answer="falsch">
+              Falsch
+            </button>
+          </div>
+
+          <div id="feedback" class="feedback hidden"></div>
+
+          <div class="button-row">
+            <button class="primary hidden" id="nextButton">
+              Nächste Aufgabe
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ergebnisseite -->
+      <section id="resultScreen" class="hidden">
+        <div class="result-card">
+          <h2>Auswertung</h2>
+
+          <div class="results-summary">
+            Du hast erreicht:
+            <div class="score" id="finalScore"></div>
+            <div id="resultMessage"></div>
+          </div>
+
+          <div class="result-list" id="resultList"></div>
+
+          <div class="button-row">
+            <button class="primary" id="restartButton">
+              Neuer Durchlauf
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /*
+      Die Inhalte bestehen aus:
+      - einem Text
+      - Fakten, die im Text ausdrücklich genannt werden
+      - automatisch erzeugbaren Aussagen
+
+      type:
+      true      = Aussage ist richtig
+      false     = Aussage ist falsch
+      unknown   = Aussage ist anhand des Textes nicht entscheidbar
+    */
+
+    const textPool = [
+      {
+        title: "Stadtgärten und ihre Bedeutung",
+        text:
+          "In vielen Städten entstehen auf freien Flächen sogenannte Stadtgärten. " +
+          "Dort bauen Bewohnerinnen und Bewohner gemeinsam Gemüse, Kräuter und Blumen an. " +
+          "Die Flächen werden häufig von Vereinen, Nachbarschaftsgruppen oder kommunalen Einrichtungen betreut. " +
+          "Neben der Erzeugung von Lebensmitteln dienen Stadtgärten auch als Treffpunkte. " +
+          "Untersuchungen zu einzelnen Projekten zeigen, dass solche Gärten das nachbarschaftliche Miteinander fördern können. " +
+          "Allerdings steht nicht in jeder Stadt ausreichend Platz für neue Stadtgärten zur Verfügung. " +
+          "Ob ein Garten dauerhaft bestehen bleibt, hängt unter anderem von der Finanzierung und der Beteiligung der Bevölkerung ab.",
+        facts: [
+          {
+            subject: "In Stadtgärten werden ausschließlich Blumen angebaut.",
+            answer: "falsch",
+            explanation: "Im Text werden Gemüse, Kräuter und Blumen genannt."
+          },
+          {
+            subject: "Stadtgärten können als Treffpunkte dienen.",
+            answer: "richtig",
+            explanation: "Das wird im Text ausdrücklich gesagt."
+          },
+          {
+            subject: "Alle Stadtgärten werden von der Stadtverwaltung betrieben.",
+            answer: "unbestimmt",
+            explanation: "Im Text werden auch Vereine und Nachbarschaftsgruppen als Betreiber genannt."
+          },
+          {
+            subject: "Für den dauerhaften Bestand eines Gartens kann die Finanzierung eine Rolle spielen.",
+            answer: "richtig",
+            explanation: "Die Finanzierung wird ausdrücklich als ein Einflussfaktor genannt."
+          },
+          {
+            subject: "In jeder Stadt gibt es genügend Platz für weitere Stadtgärten.",
+            answer: "falsch",
+            explanation: "Im Text steht, dass nicht in jeder Stadt ausreichend Platz vorhanden ist."
+          },
+          {
+            subject: "Stadtgärten führen in allen Fällen zu einem besseren nachbarschaftlichen Miteinander.",
+            answer: "falsch",
+            explanation: "Im Text steht nur, dass sie das Miteinander fördern können."
+          }
+        ]
+      },
+
+      {
+        title: "Der öffentliche Nahverkehr",
+        text:
+          "Der öffentliche Nahverkehr umfasst beispielsweise Busse, Straßenbahnen und U-Bahnen. " +
+          "Er ermöglicht es Menschen, Wege zurückzulegen, ohne selbst ein Auto zu benutzen. " +
+          "In größeren Städten werden häufig mehrere Verkehrsmittel miteinander verbunden. " +
+          "Fahrgäste können dadurch unterschiedliche Verkehrsmittel auf einer Strecke nutzen. " +
+          "Die Auslastung des Nahverkehrs ist zu verschiedenen Tageszeiten unterschiedlich. " +
+          "Während der morgendlichen und nachmittäglichen Hauptverkehrszeiten sind viele Fahrzeuge stärker besetzt. " +
+          "Wie häufig ein Verkehrsmittel fährt, hängt unter anderem von der Nachfrage und den verfügbaren finanziellen Mitteln ab.",
+        facts: [
+          {
+            subject: "Busse gehören zum öffentlichen Nahverkehr.",
+            answer: "richtig",
+            explanation: "Busse werden im Text ausdrücklich genannt."
+          },
+          {
+            subject: "Der öffentliche Nahverkehr wird ausschließlich von Menschen genutzt, die kein Auto besitzen.",
+            answer: "unbestimmt",
+            explanation: "Der Text sagt nur, dass man dadurch Wege ohne eigenes Auto zurücklegen kann."
+          },
+          {
+            subject: "In größeren Städten werden häufig mehrere Verkehrsmittel miteinander verbunden.",
+            answer: "richtig",
+            explanation: "Diese Information steht direkt im Text."
+          },
+          {
+            subject: "Alle Fahrzeuge des öffentlichen Nahverkehrs sind während des gesamten Tages gleich stark besetzt.",
+            answer: "falsch",
+            explanation: "Die Auslastung ist laut Text zu verschiedenen Tageszeiten unterschiedlich."
+          },
+          {
+            subject: "Die Nachfrage kann beeinflussen, wie häufig ein Verkehrsmittel fährt.",
+            answer: "richtig",
+            explanation: "Die Nachfrage wird ausdrücklich als Einflussfaktor genannt."
+          },
+          {
+            subject: "U-Bahnen fahren häufiger als Busse.",
+            answer: "unbestimmt",
+            explanation: "Der Text nennt keine allgemeine Häufigkeit für U-Bahnen und Busse."
+          }
+        ]
+      },
+
+      {
+        title: "Bienen und die Bestäubung",
+        text:
+          "Bienen besuchen Blüten, um Nektar und Pollen zu sammeln. " +
+          "Während dieses Vorgangs können Pollenkörner von einer Blüte zur nächsten übertragen werden. " +
+          "Dieser Vorgang wird als Bestäubung bezeichnet. " +
+          "Bei zahlreichen Pflanzen ist die Bestäubung eine Voraussetzung dafür, dass sich Früchte und Samen entwickeln. " +
+          "Neben Honigbienen können auch Wildbienen und andere Insekten zur Bestäubung beitragen. " +
+          "Die Anzahl der Insekten in einer Landschaft wird unter anderem durch das vorhandene Nahrungsangebot und geeignete Nistplätze beeinflusst. " +
+          "Nicht jede Pflanzenart wird von denselben Insekten bestäubt.",
+        facts: [
+          {
+            subject: "Bienen sammeln unter anderem Nektar und Pollen.",
+            answer: "richtig",
+            explanation: "Beides wird im Text ausdrücklich genannt."
+          },
+          {
+            subject: "Bestäubung bedeutet die Übertragung von Pollenkörnern zwischen Blüten.",
+            answer: "richtig",
+            explanation: "Der Text beschreibt Bestäubung genau so."
+          },
+          {
+            subject: "Nur Honigbienen können Pflanzen bestäuben.",
+            answer: "falsch",
+            explanation: "Auch Wildbienen und andere Insekten können laut Text zur Bestäubung beitragen."
+          },
+          {
+            subject: "Bei zahlreichen Pflanzen ist Bestäubung für die Entwicklung von Früchten und Samen erforderlich.",
+            answer: "richtig",
+            explanation: "Dies wird im Text ausdrücklich erklärt."
+          },
+          {
+            subject: "Jede Pflanzenart wird von allen Insekten gleichermaßen bestäubt.",
+            answer: "falsch",
+            explanation: "Im Text steht, dass nicht jede Pflanzenart von denselben Insekten bestäubt wird."
+          },
+          {
+            subject: "Eine Landschaft mit vielen Nistplätzen hat immer besonders viele Insekten.",
+            answer: "unbestimmt",
+            explanation: "Geeignete Nistplätze werden als Einflussfaktor genannt, aber eine Garantie wird nicht gegeben."
+          }
+        ]
+      },
+
+      {
+        title: "Lernen mit Pausen",
+        text:
+          "Beim Lernen wenden Menschen unterschiedliche Strategien an. " +
+          "Einige teilen den Lernstoff in kleinere Abschnitte auf und bearbeiten diese nacheinander. " +
+          "Andere wiederholen wichtige Inhalte in bestimmten Abständen. " +
+          "Regelmäßige Pausen können dabei helfen, die Aufmerksamkeit über einen längeren Zeitraum aufrechtzuerhalten. " +
+          "Wie lang eine sinnvolle Lernphase ist, kann von der Aufgabe und von der jeweiligen Person abhängen. " +
+          "Eine bestimmte Lernmethode ist deshalb nicht für alle Menschen gleichermaßen geeignet. " +
+          "Auch die Gestaltung des Arbeitsplatzes kann die Konzentration beeinflussen.",
+        facts: [
+          {
+            subject: "Alle Menschen lernen mit derselben Methode am erfolgreichsten.",
+            answer: "falsch",
+            explanation: "Im Text steht, dass eine Methode nicht für alle gleichermaßen geeignet ist."
+          },
+          {
+            subject: "Regelmäßige Pausen können helfen, die Aufmerksamkeit aufrechtzuerhalten.",
+            answer: "richtig",
+            explanation: "Das wird im Text direkt genannt."
+          },
+          {
+            subject: "Die sinnvolle Länge einer Lernphase hängt ausschließlich von der Uhrzeit ab.",
+            answer: "unbestimmt",
+            explanation: "Der Text nennt die Aufgabe und die Person, aber nicht die Uhrzeit."
+          },
+          {
+            subject: "Manche Menschen wiederholen Lerninhalte in bestimmten Abständen.",
+            answer: "richtig",
+            explanation: "Diese Lernstrategie wird im Text beschrieben."
+          },
+          {
+            subject: "Die Gestaltung des Arbeitsplatzes hat keinen Einfluss auf die Konzentration.",
+            answer: "falsch",
+            explanation: "Im Text steht, dass sie die Konzentration beeinflussen kann."
+          },
+          {
+            subject: "Das Aufteilen des Lernstoffs in Abschnitte ist grundsätzlich besser als jede andere Lernstrategie.",
+            answer: "unbestimmt",
+            explanation: "Der Text beschreibt mehrere Strategien, bewertet sie aber nicht allgemein."
+          }
+        ]
+      }
+    ];
+
+    const TOTAL_QUESTIONS = 8;
+    const QUESTION_TIME = 50;
+
+    let currentText;
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timeLeft = QUESTION_TIME;
+    let timerInterval = null;
+    let selectedAnswer = null;
+    let results = [];
+
+    const startScreen = document.getElementById("startScreen");
+    const readingScreen = document.getElementById("readingScreen");
+    const questionScreen = document.getElementById("questionScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const readingTitle = document.getElementById("readingTitle");
+    const readingText = document.getElementById("readingText");
+    const statement = document.getElementById("statement");
+    const timer = document.getElementById("timer");
+    const nextButton = document.getElementById("nextButton");
+    const feedback = document.getElementById("feedback");
+
+    const questionCounter = document.getElementById("questionCounter");
+    const scoreCounter = document.getElementById("scoreCounter");
+    const progressValue = document.getElementById("progressValue");
+
+    function zufälligesElement(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function mische(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function zeigeNur(element) {
+      [startScreen, readingScreen, questionScreen, resultScreen]
+        .forEach(screen => screen.classList.add("hidden"));
+
+      element.classList.remove("hidden");
+    }
+
+    function neueRunde() {
+      currentText = zufälligesElement(textPool);
+
+      /*
+        Die Aussagen werden zufällig ausgewählt.
+        Durch Erweiterung des textPool können beliebig viele
+        weitere Textvarianten hinzugefügt werden.
+      */
+      questions = mische(currentText.facts).slice(0, TOTAL_QUESTIONS);
+
+      currentQuestionIndex = 0;
+      score = 0;
+      results = [];
+
+      readingTitle.textContent = currentText.title;
+      readingText.textContent = currentText.text;
+
+      zeigeNur(startScreen);
+    }
+
+    function starteLesen() {
+      zeigeNur(readingScreen);
+    }
+
+    function starteAufgaben() {
+      zeigeNur(questionScreen);
+      zeigeFrage();
+    }
+
+    function zeigeFrage() {
+      clearInterval(timerInterval);
+
+      selectedAnswer = null;
+      feedback.className = "feedback hidden";
+      feedback.textContent = "";
+      nextButton.classList.add("hidden");
+
+      document.querySelectorAll(".answer-button").forEach(button => {
+        button.classList.remove("selected");
+        button.disabled = false;
+      });
+
+      const aktuelleFrage = questions[currentQuestionIndex];
+
+      statement.textContent = aktuelleFrage.subject;
+      questionCounter.textContent =
+        `Aufgabe ${currentQuestionIndex + 1} von ${questions.length}`;
+      scoreCounter.textContent = `Punkte: ${score}`;
+
+      const fortschritt =
+        (currentQuestionIndex / questions.length) * 100;
+
+      progressValue.style.width = `${fortschritt}%`;
+
+      timeLeft = QUESTION_TIME;
+      aktualisiereTimer();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        aktualisiereTimer();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          zeitAbgelaufen();
+        }
+      }, 1000);
+    }
+
+    function aktualisiereTimer() {
+      timer.textContent = `Verbleibende Zeit: ${timeLeft} Sekunden`;
+
+      timer.classList.remove("warning", "danger");
+
+      if (timeLeft <= 10) {
+        timer.classList.add("danger");
+      } else if (timeLeft <= 20) {
+        timer.classList.add("warning");
+      }
+    }
+
+    function waehleAntwort(answer, button) {
+      if (selectedAnswer !== null) {
+        return;
+      }
+
+      selectedAnswer = answer;
+      clearInterval(timerInterval);
+
+      document.querySelectorAll(".answer-button").forEach(element => {
+        element.disabled = true;
+      });
+
+      button.classList.add("selected");
+
+      const aktuelleFrage = questions[currentQuestionIndex];
+      const korrekt = answer === aktuelleFrage.answer;
+
+      if (korrekt) {
+        score++;
+      }
+
+      results.push({
+        statement: aktuelleFrage.subject,
+        given: answer,
+        correct: aktuelleFrage.answer,
+        explanation: aktuelleFrage.explanation,
+        wasCorrect: korrekt,
+        timeout: false
+      });
+
+      feedback.className = `feedback ${korrekt ? "correct" : "incorrect"}`;
+      feedback.innerHTML = korrekt
+        ? `<strong>Richtig.</strong> ${aktuelleFrage.explanation}`
+        : `<strong>Nicht richtig.</strong> Korrekte Bewertung:
+           <strong>${aktuelleFrage.answer}</strong>.<br>
+           ${aktuelleFrage.explanation}`;
+
+      nextButton.textContent =
+        currentQuestionIndex === questions.length - 1
+          ? "Auswertung anzeigen"
+          : "Nächste Aufgabe";
+
+      nextButton.classList.remove("hidden");
+      scoreCounter.textContent = `Punkte: ${score}`;
+    }
+
+    function zeitAbgelaufen() {
+      const aktuelleFrage = questions[currentQuestionIndex];
+
+      results.push({
+        statement: aktuelleFrage.subject,
+        given: "Keine Antwort",
+        correct: aktuelleFrage.answer,
+        explanation: aktuelleFrage.explanation,
+        wasCorrect: false,
+        timeout: true
+      });
+
+      document.querySelectorAll(".answer-button").forEach(button => {
+        button.disabled = true;
+      });
+
+      feedback.className = "feedback incorrect";
+      feedback.innerHTML =
+        `<strong>Zeit abgelaufen.</strong> ` +
+        `Die korrekte Bewertung wäre <strong>${aktuelleFrage.answer}</strong> gewesen.<br>` +
+        aktuelleFrage.explanation;
+
+      nextButton.textContent =
+        currentQuestionIndex === questions.length - 1
+          ? "Auswertung anzeigen"
+          : "Nächste Aufgabe";
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function naechsteFrage() {
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex >= questions.length) {
+        zeigeErgebnis();
+      } else {
+        zeigeFrage();
+      }
+    }
+
+    function zeigeErgebnis() {
+      clearInterval(timerInterval);
+      zeigeNur(resultScreen);
+
+      progressValue.style.width = "100%";
+
+      const percentage = Math.round((score / questions.length) * 100);
+
+      document.getElementById("finalScore").textContent =
+        `${score} von ${questions.length} Punkten`;
+
+      let message;
+
+      if (percentage >= 90) {
+        message = "Sehr gute Leistung!";
+      } else if (percentage >= 70) {
+        message = "Gute Leistung!";
+      } else if (percentage >= 50) {
+        message = "Noch ausbaufähig.";
+      } else {
+        message = "Lies die Texte noch einmal besonders aufmerksam.";
+      }
+
+      document.getElementById("resultMessage").textContent =
+        `${percentage}% – ${message}`;
+
+      const resultList = document.getElementById("resultList");
+      resultList.innerHTML = "";
+
+      results.forEach((result, index) => {
+        const item = document.createElement("div");
+        item.className =
+          `result-item ${result.wasCorrect ? "good" : "bad"}`;
+
+        item.innerHTML = `
+          <strong>Aufgabe ${index + 1}</strong><br>
+          ${result.statement}<br><br>
+          Deine Antwort:
+          <strong>${result.given}</strong><br>
+          Richtige Bewertung:
+          <strong>${result.correct}</strong><br>
+          <small>${result.explanation}</small>
+        `;
+
+        resultList.appendChild(item);
+      });
+    }
+
+    document.getElementById("startReadingButton")
+      .addEventListener("click", starteLesen);
+
+    document.getElementById("startQuestionsButton")
+      .addEventListener("click", starteAufgaben);
+
+    document.getElementById("restartButton")
+      .addEventListener("click", neueRunde);
+
+    document.querySelectorAll(".answer-button").forEach(button => {
+      button.addEventListener("click", () => {
+        waehleAntwort(button.dataset.answer, button);
+      });
+    });
+
+    nextButton.addEventListener("click", naechsteFrage);
+
+    neueRunde();
+  </script>
+</body>
+</html>

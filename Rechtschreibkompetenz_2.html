@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rechtschreibtest</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-top: 0;
+        }
+
+        .description {
+            text-align: center;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .settings {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        select {
+            padding: 8px 12px;
+            font-size: 1rem;
+            border-radius: 6px;
+            margin-left: 8px;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .start-button,
+        .next-button,
+        .restart-button {
+            display: block;
+            margin: 20px auto 0;
+            padding: 13px 25px;
+            border: none;
+            border-radius: 8px;
+            background: #1e3c72;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .start-button:hover,
+        .next-button:hover,
+        .restart-button:hover {
+            background: #142b52;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .timer {
+            color: #c62828;
+            font-size: 1.2rem;
+        }
+
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 100%;
+            background: #2e7d32;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .question-box {
+            background: #f1f5fb;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .category {
+            color: #1e3c72;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .question {
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .answer-button {
+            min-height: 60px;
+            padding: 14px;
+            border: 2px solid #1e3c72;
+            border-radius: 9px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .answer-button:hover {
+            background: #e8f0ff;
+            transform: translateY(-2px);
+        }
+
+        .answer-button.correct {
+            background: #c8e6c9;
+            border-color: #2e7d32;
+            color: #1b5e20;
+        }
+
+        .answer-button.wrong {
+            background: #ffcdd2;
+            border-color: #c62828;
+            color: #b71c1c;
+        }
+
+        .answer-button:disabled {
+            cursor: default;
+            transform: none;
+        }
+
+        .feedback {
+            min-height: 60px;
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+
+        .result {
+            text-align: center;
+        }
+
+        .result-score {
+            font-size: 2rem;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .answers {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Startseite -->
+    <section id="start-screen">
+        <h1>Rechtschreibtest</h1>
+
+        <p class="description">
+            Entscheide, welche Schreibweise richtig ist.
+            Es gibt Aufgaben mit einzelnen Wörtern und Aufgaben mit vollständigen Sätzen.
+            Für jede Frage hast du 30 Sekunden Zeit.
+        </p>
+
+        <div class="settings">
+            <label for="question-count">Anzahl der Fragen:</label>
+
+            <select id="question-count">
+                <option value="5">5 Fragen</option>
+                <option value="10" selected>10 Fragen</option>
+                <option value="15">15 Fragen</option>
+                <option value="20">20 Fragen</option>
+            </select>
+        </div>
+
+        <button class="start-button" onclick="startTest()">
+            Test starten
+        </button>
+    </section>
+
+    <!-- Quiz -->
+    <section id="quiz-screen" class="hidden">
+
+        <div class="top-bar">
+            <div id="question-counter"></div>
+
+            <div class="timer">
+                Zeit: <span id="time">30</span> Sekunden
+            </div>
+        </div>
+
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div class="question-box">
+            <div id="category" class="category"></div>
+            <div id="question" class="question"></div>
+        </div>
+
+        <div id="answers" class="answers"></div>
+
+        <div id="feedback" class="feedback"></div>
+
+        <button id="next-button" class="next-button hidden" onclick="nextQuestion()">
+            Nächste Frage
+        </button>
+    </section>
+
+    <!-- Ergebnis -->
+    <section id="result-screen" class="result hidden">
+        <h1>Test beendet</h1>
+
+        <p>Dein Ergebnis:</p>
+
+        <div id="result-score" class="result-score"></div>
+
+        <p id="result-message"></p>
+
+        <button class="restart-button" onclick="restartTest()">
+            Noch einmal starten
+        </button>
+    </section>
+
+</div>
+
+<script>
+    const TIME_LIMIT = 30;
+
+    /*
+     * Fragenpool
+     *
+     * Es gibt zwei Fragetypen:
+     * - Wort: einzelne Schreibweise
+     * - Satz: vollständiger Satz
+     *
+     * Der Fragenpool kann jederzeit erweitert werden.
+     */
+    const questionPool = [
+
+        // Einzelne Wörter
+        {
+            type: "Wortaufgabe",
+            category: "Doppel-s und ß",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Straße", "Strasse", "Straase", "Stra ße"],
+            correct: "Straße",
+            explanation: "Nach langem Vokal oder Doppellaut steht häufig ß: Straße."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Doppel-s und ß",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Schluss", "Schluß", "Schluz", "Schlussß"],
+            correct: "Schluss",
+            explanation: "Nach kurzem Vokal steht ss: Schluss."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Doppelkonsonanten",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Schifffahrt", "Schiffahrt", "Schiff-Fahrt", "Schifahrt"],
+            correct: "Schifffahrt",
+            explanation: "Bei zusammengesetzten Wörtern bleiben die drei gleichen Konsonanten erhalten."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Doppelkonsonanten",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Brennnessel", "Brennessel", "Brenn-Nessel", "Brennessell"],
+            correct: "Brennnessel",
+            explanation: "Das Wort wird mit drei n geschrieben: Brennnessel."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Biografie", "Biographie", "Biografhie", "Biograhie"],
+            correct: "Biografie",
+            explanation: "Die reformierte Schreibweise lautet Biografie."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Delfin", "Delphin", "Delfhin", "Delphien"],
+            correct: "Delfin",
+            explanation: "Die empfohlene deutsche Schreibweise lautet Delfin."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Fotografie", "Photographie", "Fotographie", "Photografie"],
+            correct: "Fotografie",
+            explanation: "Die reformierte Schreibweise lautet Fotografie."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Zusammenschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["kennenlernen", "kennen lernen", "kennen-lernen", "kennelernen"],
+            correct: "kennenlernen",
+            explanation: "Das Verb kennenlernen wird zusammengeschrieben."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Groß- und Kleinschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["etwas Neues", "etwas neues", "Etwas Neues", "etwas Neuses"],
+            correct: "etwas Neues",
+            explanation: "Nach etwas wird das substantivierte Adjektiv großgeschrieben."
+        },
+
+        {
+            type: "Wortaufgabe",
+            category: "Bindestrichschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["E-Mail", "Email", "E Mail", "E-Mail-"],
+            correct: "E-Mail",
+            explanation: "Die Schreibweise E-Mail wird mit Bindestrich geschrieben."
+        },
+
+        // Sätze
+        {
+            type: "Satzaufgabe",
+            category: "dass oder das",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Ich weiß, dass du morgen kommst.",
+                "Ich weiß, das du morgen kommst.",
+                "Ich weis, dass du morgen komst.",
+                "Ich weiß dass, du morgen kommst."
+            ],
+            correct: "Ich weiß, dass du morgen kommst.",
+            explanation: "Hier handelt es sich um eine Konjunktion. Deshalb wird dass mit ss geschrieben und durch ein Komma eingeleitet."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Großschreibung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Sie hat im Allgemeinen recht.",
+                "Sie hat im allgemeinen recht.",
+                "Sie hat im Allgemeinen Recht.",
+                "sie hat im Allgemeinen recht."
+            ],
+            correct: "Sie hat im Allgemeinen recht.",
+            explanation: "Das substantivierte Adjektiv Allgemeinen wird großgeschrieben."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Großschreibung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Ich wünsche dir alles Gute.",
+                "Ich wünsche dir alles gute.",
+                "Ich wünsche dir Alles Gute.",
+                "Ich wünsche dir alles Guhte."
+            ],
+            correct: "Ich wünsche dir alles Gute.",
+            explanation: "Das substantivierte Adjektiv Gute wird großgeschrieben."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Zusammen- und Getrenntschreibung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Wir gehen heute Nachmittag Rad fahren.",
+                "Wir gehen heute Nachmittag radfahren.",
+                "Wir gehen heute Nachmittag Radfahren.",
+                "Wir gehen heute Nachmitag Rad fahren."
+            ],
+            correct: "Wir gehen heute Nachmittag Rad fahren.",
+            explanation: "In dieser Verbindung wird Rad fahren getrennt geschrieben."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Zusammen- und Getrenntschreibung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Die Schifffahrt beginnt um acht Uhr.",
+                "Die Schiffahrt beginnt um acht Uhr.",
+                "Die Schifffart beginnt um acht Uhr.",
+                "Die Schif-Fahrt beginnt um acht Uhr."
+            ],
+            correct: "Die Schifffahrt beginnt um acht Uhr.",
+            explanation: "Das zusammengesetzte Wort Schifffahrt enthält drei f."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Kommasetzung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Obwohl es regnete, gingen wir spazieren.",
+                "Obwohl es regnete gingen wir spazieren.",
+                "Obwohl, es regnete gingen wir spazieren.",
+                "Obwohl es regnete gingen, wir spazieren."
+            ],
+            correct: "Obwohl es regnete, gingen wir spazieren.",
+            explanation: "Ein Nebensatz wird durch ein Komma vom Hauptsatz getrennt."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Kommasetzung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Ich glaube, dass die Lösung richtig ist.",
+                "Ich glaube dass die Lösung richtig ist.",
+                "Ich glaube, das die Lösung richtig ist.",
+                "Ich glaube dass, die Lösung richtig ist."
+            ],
+            correct: "Ich glaube, dass die Lösung richtig ist.",
+            explanation: "Der dass-Nebensatz wird durch ein Komma abgetrennt."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Bindestrichschreibung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Er wohnt in einer Drei-Zimmer-Wohnung.",
+                "Er wohnt in einer Dreizimmerwohnung.",
+                "Er wohnt in einer Drei Zimmer Wohnung.",
+                "Er wohnt in einer Drei-Zimmerwohnung."
+            ],
+            correct: "Er wohnt in einer Drei-Zimmer-Wohnung.",
+            explanation: "Mehrteilige Zusammensetzungen mit Zahlen können durch Bindestriche gegliedert werden."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Groß- und Kleinschreibung",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Zum Ersten möchte ich mich bedanken.",
+                "Zum ersten möchte ich mich bedanken.",
+                "Zum Erstem möchte ich mich bedanken.",
+                "zum Ersten möchte ich mich bedanken."
+            ],
+            correct: "Zum Ersten möchte ich mich bedanken.",
+            explanation: "Ersten wird hier substantiviert und deshalb großgeschrieben."
+        },
+
+        {
+            type: "Satzaufgabe",
+            category: "Fremdwörter",
+            question: "Welcher Satz ist richtig geschrieben?",
+            options: [
+                "Die Fotografie hängt an der Wand.",
+                "Die Photographie hängt an der Wand.",
+                "Die Fotographie hängt an der Wand.",
+                "Die Fotografie hängt an der Wand"
+            ],
+            correct: "Die Fotografie hängt an der Wand.",
+            explanation: "Fotografie ist die reformierte Schreibweise. Am Satzende steht außerdem ein Punkt."
+        }
+    ];
+
+    let questions = [];
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLeft = TIME_LIMIT;
+    let timer;
+    let answered = false;
+
+    function shuffle(array) {
+        return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function startTest() {
+        const questionCount = Number(
+            document.getElementById("question-count").value
+        );
+
+        questions = shuffle(questionPool).slice(0, questionCount);
+        currentQuestion = 0;
+        score = 0;
+
+        document.getElementById("start-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.remove("hidden");
+
+        showQuestion();
+    }
+
+    function showQuestion() {
+        clearInterval(timer);
+
+        answered = false;
+        timeLeft = TIME_LIMIT;
+
+        const current = questions[currentQuestion];
+
+        document.getElementById("question-counter").textContent =
+            `Frage ${currentQuestion + 1} von ${questions.length}`;
+
+        document.getElementById("category").textContent =
+            `${current.type} – Bereich: ${current.category}`;
+
+        document.getElementById("question").textContent =
+            current.question;
+
+        document.getElementById("time").textContent = timeLeft;
+
+        document.getElementById("feedback").textContent = "";
+        document.getElementById("next-button").classList.add("hidden");
+
+        const progressBar = document.getElementById("progress-bar");
+        progressBar.style.width = "100%";
+        progressBar.style.background = "#2e7d32";
+
+        const answersContainer = document.getElementById("answers");
+        answersContainer.innerHTML = "";
+
+        shuffle(current.options).forEach(option => {
+            const button = document.createElement("button");
+
+            button.className = "answer-button";
+            button.textContent = option;
+
+            button.onclick = function () {
+                checkAnswer(button, option);
+            };
+
+            answersContainer.appendChild(button);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+
+            document.getElementById("time").textContent = timeLeft;
+
+            const percentage = (timeLeft / TIME_LIMIT) * 100;
+            const progressBar = document.getElementById("progress-bar");
+
+            progressBar.style.width = percentage + "%";
+
+            if (timeLeft <= 10) {
+                progressBar.style.background = "#f57c00";
+            }
+
+            if (timeLeft <= 5) {
+                progressBar.style.background = "#c62828";
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                timeExpired();
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(button, selectedAnswer) {
+        if (answered) {
+            return;
+        }
+
+        answered = true;
+        clearInterval(timer);
+
+        const current = questions[currentQuestion];
+        const allButtons = document.querySelectorAll(".answer-button");
+
+        allButtons.forEach(answerButton => {
+            answerButton.disabled = true;
+
+            if (answerButton.textContent === current.correct) {
+                answerButton.classList.add("correct");
+            }
+        });
+
+        if (selectedAnswer === current.correct) {
+            score++;
+
+            button.classList.add("correct");
+
+            document.getElementById("feedback").innerHTML =
+                `Richtig!<br><small>${current.explanation}</small>`;
+
+            document.getElementById("feedback").style.color = "#2e7d32";
+        } else {
+            button.classList.add("wrong");
+
+            document.getElementById("feedback").innerHTML =
+                `Falsch. Richtig wäre:<br>
+                 <strong>${current.correct}</strong><br>
+                 <small>${current.explanation}</small>`;
+
+            document.getElementById("feedback").style.color = "#c62828";
+        }
+
+        document.getElementById("next-button").classList.remove("hidden");
+    }
+
+    function timeExpired() {
+        if (answered) {
+            return;
+        }
+
+        answered = true;
+
+        const current = questions[currentQuestion];
+        const allButtons = document.querySelectorAll(".answer-button");
+
+        allButtons.forEach(button => {
+            button.disabled = true;
+
+            if (button.textContent === current.correct) {
+                button.classList.add("correct");
+            }
+        });
+
+        document.getElementById("feedback").innerHTML =
+            `Zeit abgelaufen.<br>
+             Richtig wäre: <strong>${current.correct}</strong><br>
+             <small>${current.explanation}</small>`;
+
+        document.getElementById("feedback").style.color = "#c62828";
+
+        document.getElementById("next-button").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+
+        if (currentQuestion >= questions.length) {
+            showResult();
+        } else {
+            showQuestion();
+        }
+    }
+
+    function showResult() {
+        clearInterval(timer);
+
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+
+        const percentage = Math.round(
+            (score / questions.length) * 100
+        );
+
+        document.getElementById("result-score").textContent =
+            `${score} von ${questions.length} Punkten (${percentage} %)`;
+
+        let message;
+
+        if (percentage >= 90) {
+            message = "Hervorragend! Du beherrschst die Regeln sehr sicher.";
+        } else if (percentage >= 70) {
+            message = "Gutes Ergebnis! Einige Regeln kannst du noch wiederholen.";
+        } else if (percentage >= 50) {
+            message = "Befriedigendes Ergebnis. Weitere Übungen sind empfehlenswert.";
+        } else {
+            message = "Wiederhole die Rechtschreibregeln und versuche es noch einmal.";
+        }
+
+        document.getElementById("result-message").textContent = message;
+    }
+
+    function restartTest() {
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("start-screen").classList.remove("hidden");
+    }
+</script>
+
+</body>
+</html>

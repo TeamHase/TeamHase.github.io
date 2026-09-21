@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Zahlenreihen-Trainer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #222;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      padding: 30px;
+
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      text-align: center;
+      color: #1e3c72;
+    }
+
+    .description {
+      margin-top: 0;
+      margin-bottom: 25px;
+      text-align: center;
+      color: #666;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    select,
+    input,
+    button {
+      min-height: 44px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      font-size: 16px;
+    }
+
+    select,
+    input {
+      background: #fafafa;
+    }
+
+    .sequence {
+      min-height: 100px;
+      margin-bottom: 12px;
+      padding: 20px 10px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      border-radius: 12px;
+      background: #eef4ff;
+      color: #1e3c72;
+
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .number {
+      min-width: 55px;
+      text-align: center;
+    }
+
+    .question-mark {
+      color: #d35400;
+    }
+
+    .hint {
+      min-height: 24px;
+      margin-bottom: 18px;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .answer-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .answer-row input {
+      flex: 1;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    button {
+      border: none;
+      background: #1e3c72;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #142950;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      background: #aab3c2;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .secondary {
+      background: #687386;
+    }
+
+    .secondary:hover {
+      background: #4e5869;
+    }
+
+    .feedback {
+      min-height: 32px;
+      margin: 15px 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .correct {
+      color: #188038;
+    }
+
+    .wrong {
+      color: #c5221f;
+    }
+
+    .statistics {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+
+      color: #555;
+    }
+
+    #timer {
+      color: #188038;
+    }
+
+    @media (max-width: 700px) {
+      .settings {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 20px;
+      }
+
+      .sequence {
+        font-size: 24px;
+        gap: 5px;
+      }
+
+      .answer-row {
+        flex-direction: column;
+      }
+
+      .statistics {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+    <h1>Zahlenreihen-Trainer</h1>
+
+    <p class="description">
+      Übe Zahlenreihen mit unbegrenzt vielen zufällig erzeugten Aufgaben.
+    </p>
+
+    <section class="settings">
+      <label>
+        Schwierigkeitsgrad
+        <select id="difficulty">
+          <option value="easy">Leicht</option>
+          <option value="medium" selected>Mittel</option>
+          <option value="hard">Schwer</option>
+        </select>
+      </label>
+
+      <label>
+        Zahlenreihen-Typ
+        <select id="type">
+          <option value="random">Zufällige Variante</option>
+          <option value="addition">Addieren oder Subtrahieren</option>
+          <option value="multiplication">Multiplizieren</option>
+          <option value="alternating">Abwechselnde Schritte</option>
+          <option value="fibonacci">Fibonacci-ähnlich</option>
+          <option value="squares">Quadratzahlen</option>
+          <option value="cubes">Kubikzahlen</option>
+          <option value="mixed">Gemischte Rechenregeln</option>
+        </select>
+      </label>
+
+      <label>
+        Zeitmodus
+        <select id="mode">
+          <option value="normal">Ohne Zeitlimit</option>
+          <option value="timed">30 Sekunden pro Aufgabe</option>
+        </select>
+      </label>
+    </section>
+
+    <div id="sequence" class="sequence"></div>
+
+    <div id="hint" class="hint"></div>
+
+    <div class="answer-row">
+      <input
+        id="answer"
+        type="number"
+        placeholder="Fehlende Zahl eingeben"
+        autocomplete="off"
+      >
+
+      <button id="checkButton">
+        Prüfen
+      </button>
+    </div>
+
+    <div class="answer-row">
+      <button id="nextButton" class="secondary">
+        Nächste Aufgabe
+      </button>
+
+      <button id="resetButton" class="secondary">
+        Statistik zurücksetzen
+      </button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div class="statistics">
+      <span>
+        Aufgabe:
+        <strong id="questionNumber">1</strong>
+      </span>
+
+      <span>
+        Richtig:
+        <strong id="correctCount">0</strong>
+      </span>
+
+      <span>
+        Bearbeitet:
+        <strong id="attemptedCount">0</strong>
+      </span>
+
+      <span>
+        Trefferquote:
+        <strong id="percentage">0 %</strong>
+      </span>
+
+      <span>
+        Zeit:
+        <strong id="timer">–</strong>
+      </span>
+    </div>
+  </main>
+
+  <script>
+    /*
+      DOM-Elemente
+    */
+
+    const sequenceElement = document.getElementById("sequence");
+    const answerElement = document.getElementById("answer");
+    const feedbackElement = document.getElementById("feedback");
+    const hintElement = document.getElementById("hint");
+
+    const difficultyElement = document.getElementById("difficulty");
+    const typeElement = document.getElementById("type");
+    const modeElement = document.getElementById("mode");
+
+    const checkButton = document.getElementById("checkButton");
+    const nextButton = document.getElementById("nextButton");
+    const resetButton = document.getElementById("resetButton");
+
+    const questionNumberElement =
+      document.getElementById("questionNumber");
+
+    const correctCountElement =
+      document.getElementById("correctCount");
+
+    const attemptedCountElement =
+      document.getElementById("attemptedCount");
+
+    const percentageElement =
+      document.getElementById("percentage");
+
+    const timerElement =
+      document.getElementById("timer");
+
+
+    /*
+      Programmvariablen
+    */
+
+    let currentQuestion = null;
+
+    let questionNumber = 0;
+    let correctCount = 0;
+    let attemptedCount = 0;
+
+    let alreadyChecked = false;
+
+    let timerInterval = null;
+    let timeLeft = 30;
+
+
+    /*
+      Hilfsfunktionen
+    */
+
+    function randomInteger(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function choose(array) {
+      return array[randomInteger(0, array.length - 1)];
+    }
+
+    function getDifficultySettings() {
+      const difficulty = difficultyElement.value;
+
+      if (difficulty === "easy") {
+        return {
+          startMin: 1,
+          startMax: 20,
+          stepMin: 1,
+          stepMax: 10,
+          multiplierMin: 2,
+          multiplierMax: 3
+        };
+      }
+
+      if (difficulty === "hard") {
+        return {
+          startMin: -50,
+          startMax: 100,
+          stepMin: 3,
+          stepMax: 25,
+          multiplierMin: 2,
+          multiplierMax: 5
+        };
+      }
+
+      return {
+        startMin: -20,
+        startMax: 50,
+        stepMin: 2,
+        stepMax: 15,
+        multiplierMin: 2,
+        multiplierMax: 4
+      };
+    }
+
+
+    /*
+      Zahlenreihen-Generatoren
+    */
+
+    function createAdditionSeries(settings) {
+      const start = randomInteger(
+        settings.startMin,
+        settings.startMax
+      );
+
+      const step = randomInteger(
+        settings.stepMin,
+        settings.stepMax
+      );
+
+      const direction = Math.random() < 0.5 ? 1 : -1;
+      const realStep = step * direction;
+
+      const numbers = [start];
+
+      for (let i = 1; i < 6; i++) {
+        numbers.push(numbers[i - 1] + realStep);
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Addiere oder subtrahiere immer denselben Wert."
+      };
+    }
+
+
+    function createMultiplicationSeries(settings) {
+      const start = randomInteger(1, 10);
+
+      const multiplier = randomInteger(
+        settings.multiplierMin,
+        settings.multiplierMax
+      );
+
+      const numbers = [start];
+
+      for (let i = 1; i < 6; i++) {
+        numbers.push(numbers[i - 1] * multiplier);
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Multipliziere jede Zahl mit demselben Faktor."
+      };
+    }
+
+
+    function createAlternatingSeries(settings) {
+      const start = randomInteger(
+        settings.startMin,
+        settings.startMax
+      );
+
+      const stepA = randomInteger(
+        settings.stepMin,
+        settings.stepMax
+      );
+
+      const stepB = randomInteger(
+        settings.stepMin,
+        settings.stepMax
+      );
+
+      const numbers = [start];
+
+      for (let i = 1; i < 6; i++) {
+        if (i % 2 === 1) {
+          numbers.push(numbers[i - 1] + stepA);
+        } else {
+          numbers.push(numbers[i - 1] - stepB);
+        }
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Die Rechenschritte wechseln sich ab."
+      };
+    }
+
+
+    function createFibonacciSeries() {
+      const first = randomInteger(1, 15);
+      const second = randomInteger(1, 15);
+
+      const numbers = [first, second];
+
+      for (let i = 2; i < 6; i++) {
+        numbers.push(numbers[i - 1] + numbers[i - 2]);
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Jede Zahl entsteht aus den beiden vorherigen Zahlen."
+      };
+    }
+
+
+    function createSquaresSeries() {
+      const start = randomInteger(1, 8);
+      const numbers = [];
+
+      for (let i = 0; i < 6; i++) {
+        numbers.push((start + i) ** 2);
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Es handelt sich um aufeinanderfolgende Quadratzahlen."
+      };
+    }
+
+
+    function createCubesSeries() {
+      const start = randomInteger(1, 5);
+      const numbers = [];
+
+      for (let i = 0; i < 6; i++) {
+        numbers.push((start + i) ** 3);
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Es handelt sich um aufeinanderfolgende Kubikzahlen."
+      };
+    }
+
+
+    function createMixedSeries(settings) {
+      const start = randomInteger(
+        settings.startMin,
+        settings.startMax
+      );
+
+      const addition = randomInteger(1, 8);
+      const multiplier = randomInteger(2, 4);
+
+      const numbers = [
+        start,
+        start + addition,
+        (start + addition) * multiplier
+      ];
+
+      for (let i = 3; i < 6; i++) {
+        if (i % 2 === 1) {
+          numbers.push(numbers[i - 1] + addition);
+        } else {
+          numbers.push(numbers[i - 1] * multiplier);
+        }
+      }
+
+      return {
+        numbers: numbers,
+        hint: "Die Rechenregeln wechseln sich ab."
+      };
+    }
+
+
+    function createSeries() {
+      const settings = getDifficultySettings();
+
+      let selectedType = typeElement.value;
+
+      if (selectedType === "random") {
+        selectedType = choose([
+          "addition",
+          "multiplication",
+          "alternating",
+          "fibonacci",
+          "squares",
+          "cubes",
+          "mixed"
+        ]);
+      }
+
+      switch (selectedType) {
+        case "addition":
+          return createAdditionSeries(settings);
+
+        case "multiplication":
+          return createMultiplicationSeries(settings);
+
+        case "alternating":
+          return createAlternatingSeries(settings);
+
+        case "fibonacci":
+          return createFibonacciSeries();
+
+        case "squares":
+          return createSquaresSeries();
+
+        case "cubes":
+          return createCubesSeries();
+
+        case "mixed":
+          return createMixedSeries(settings);
+
+        default:
+          return createAdditionSeries(settings);
+      }
+    }
+
+
+    /*
+      Timer
+    */
+
+    function stopTimer() {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+
+    function updateTimerDisplay() {
+      timerElement.textContent = `${timeLeft} s`;
+
+      if (timeLeft <= 10) {
+        timerElement.style.color = "#c5221f";
+      } else {
+        timerElement.style.color = "#188038";
+      }
+    }
+
+
+    function startTimer() {
+      stopTimer();
+
+      if (modeElement.value !== "timed") {
+        timerElement.textContent = "–";
+        timerElement.style.color = "";
+        return;
+      }
+
+      timeLeft = 30;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+
+        if (timeLeft <= 0) {
+          stopTimer();
+          timeExpired();
+        }
+      }, 1000);
+    }
+
+
+    function timeExpired() {
+      if (alreadyChecked) {
+        return;
+      }
+
+      alreadyChecked = true;
+      attemptedCount++;
+
+      answerElement.disabled = true;
+      checkButton.disabled = true;
+
+      feedbackElement.textContent =
+        `Zeit abgelaufen. Die richtige Antwort ist ${currentQuestion.answer}.`;
+
+      feedbackElement.className = "feedback wrong";
+
+      updateStatistics();
+    }
+
+
+    /*
+      Aufgabe anzeigen
+    */
+
+    function displayQuestion() {
+      stopTimer();
+
+      currentQuestion = createSeries();
+
+      const missingIndex = randomInteger(1, 4);
+      const correctAnswer = currentQuestion.numbers[missingIndex];
+
+      currentQuestion.missingIndex = missingIndex;
+      currentQuestion.answer = correctAnswer;
+
+      sequenceElement.innerHTML = "";
+
+      currentQuestion.numbers.forEach((number, index) => {
+        const numberElement = document.createElement("span");
+
+        numberElement.className = "number";
+
+        if (index === missingIndex) {
+          numberElement.textContent = "?";
+          numberElement.classList.add("question-mark");
+        } else {
+          numberElement.textContent = number;
+        }
+
+        sequenceElement.appendChild(numberElement);
+      });
+
+      hintElement.textContent = "";
+
+      feedbackElement.textContent = "";
+      feedbackElement.className = "feedback";
+
+      answerElement.value = "";
+      answerElement.disabled = false;
+
+      checkButton.disabled = false;
+
+      alreadyChecked = false;
+
+      questionNumber++;
+      questionNumberElement.textContent = questionNumber;
+
+      startTimer();
+
+      answerElement.focus();
+    }
+
+
+    /*
+      Antwort prüfen
+    */
+
+    function checkAnswer() {
+      if (alreadyChecked) {
+        return;
+      }
+
+      if (answerElement.value.trim() === "") {
+        feedbackElement.textContent =
+          "Bitte gib zuerst eine Zahl ein.";
+
+        feedbackElement.className = "feedback wrong";
+        return;
+      }
+
+      alreadyChecked = true;
+
+      stopTimer();
+
+      attemptedCount++;
+
+      answerElement.disabled = true;
+      checkButton.disabled = true;
+
+      const userAnswer = Number(answerElement.value);
+
+      if (userAnswer === currentQuestion.answer) {
+        correctCount++;
+
+        feedbackElement.textContent = "Richtig!";
+        feedbackElement.className = "feedback correct";
+      } else {
+        feedbackElement.textContent =
+          `Leider falsch. Die richtige Antwort ist ${currentQuestion.answer}.`;
+
+        feedbackElement.className = "feedback wrong";
+      }
+
+      updateStatistics();
+    }
+
+
+    /*
+      Statistik
+    */
+
+    function updateStatistics() {
+      correctCountElement.textContent = correctCount;
+      attemptedCountElement.textContent = attemptedCount;
+
+      const percentage = attemptedCount === 0
+        ? 0
+        : Math.round((correctCount / attemptedCount) * 100);
+
+      percentageElement.textContent = `${percentage} %`;
+    }
+
+
+    function resetStatistics() {
+      stopTimer();
+
+      questionNumber = 0;
+      correctCount = 0;
+      attemptedCount = 0;
+
+      updateStatistics();
+      displayQuestion();
+    }
+
+
+    /*
+      Ereignisse
+    */
+
+    checkButton.addEventListener("click", checkAnswer);
+
+    nextButton.addEventListener("click", displayQuestion);
+
+    resetButton.addEventListener("click", resetStatistics);
+
+    answerElement.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        checkAnswer();
+      }
+    });
+
+    difficultyElement.addEventListener("change", displayQuestion);
+
+    typeElement.addEventListener("change", displayQuestion);
+
+    modeElement.addEventListener("change", displayQuestion);
+
+
+    /*
+      Erste Aufgabe starten
+    */
+
+    displayQuestion();
+  </script>
+
+</body>
+</html>

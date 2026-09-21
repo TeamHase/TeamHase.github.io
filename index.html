@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meine Startseite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+
+  <header class="site-header">
+    <div class="header-content">
+      <a href="index.html" class="logo">Meine Startseite</a>
+
+      <nav>
+        <a href="index.html" class="active">Startseite</a>
+        <a href="verwaltung.html">Links verwalten</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Meine Links</h1>
+      <p>Alle wichtigen Webseiten übersichtlich an einem Ort.</p>
+    </section>
+
+    <div class="search-wrapper">
+      <input
+        type="search"
+        id="search-input"
+        placeholder="Links durchsuchen..."
+      >
+    </div>
+
+    <section id="links-container" class="links-grid"></section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

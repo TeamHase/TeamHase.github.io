@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deutsch-Sprachtest</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1d3557, #457b9d);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #1d3557;
+            text-align: center;
+        }
+
+        h2 {
+            color: #1d3557;
+        }
+
+        .beschreibung {
+            line-height: 1.6;
+            text-align: center;
+            color: #444;
+        }
+
+        .einstellungen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        select,
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        select {
+            border: 1px solid #aaa;
+            background-color: white;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #1d3557;
+            color: white;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #457b9d;
+        }
+
+        #quiz,
+        #ergebnis {
+            display: none;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f1f5f9;
+            font-weight: bold;
+            flex-wrap: wrap;
+        }
+
+        .timer {
+            color: #c1121f;
+        }
+
+        .aufgabe {
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            border: 2px solid #d9e2ec;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            font-size: 21px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .kategorie {
+            margin-bottom: 10px;
+            color: #457b9d;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .antworten {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .antwort {
+            width: 100%;
+            border: 2px solid #b8cde0;
+            background-color: #e9f1f8;
+            color: #1d3557;
+            font-weight: bold;
+        }
+
+        .antwort:hover {
+            background-color: #d3e5f4;
+        }
+
+        .antwort.richtig {
+            border-color: #2a9d4b;
+            background-color: #b7efc5;
+            color: #14532d;
+        }
+
+        .antwort.falsch {
+            border-color: #d90429;
+            background-color: #ffc9c9;
+            color: #7f1d1d;
+        }
+
+        .antwort:disabled {
+            cursor: default;
+            opacity: 1;
+        }
+
+        #feedback {
+            min-height: 28px;
+            margin-top: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #weiter {
+            display: block;
+            margin: 20px auto 0;
+            background-color: #2a9d8f;
+        }
+
+        #weiter:hover {
+            background-color: #21867a;
+        }
+
+        #ergebnis {
+            text-align: center;
+        }
+
+        .ergebnis-box {
+            margin: 25px 0;
+            padding: 25px;
+            border-radius: 12px;
+            background-color: #f1f5f9;
+            font-size: 20px;
+            line-height: 1.8;
+        }
+
+        .hinweis {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .antworten {
+                grid-template-columns: 1fr;
+            }
+
+            .status {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .aufgabe {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <section id="startseite">
+        <h1>Deutsch-Sprachtest</h1>
+
+        <p class="beschreibung">
+            Ergänze den Satz richtig. Wähle aus vier Lösungsvorschlägen
+            die grammatisch und orthografisch korrekte Antwort aus.
+        </p>
+
+        <div class="einstellungen">
+            <label for="zeitlimit">Zeitlimit:</label>
+
+            <select id="zeitlimit">
+                <option value="15">15 Sekunden</option>
+                <option value="30" selected>30 Sekunden</option>
+                <option value="60">60 Sekunden</option>
+                <option value="120">120 Sekunden</option>
+            </select>
+
+            <button id="startButton" type="button">
+                Test starten
+            </button>
+        </div>
+
+        <p class="hinweis">
+            Die Aufgaben und Antwortmöglichkeiten werden zufällig gemischt.
+        </p>
+    </section>
+
+
+    <section id="quiz">
+        <div class="status">
+            <span id="frageNummer">Aufgabe: 1</span>
+            <span id="punktestand">Punkte: 0</span>
+            <span class="timer">
+                Zeit: <span id="zeit">30</span> Sekunden
+            </span>
+        </div>
+
+        <div class="aufgabe">
+            <div id="kategorie" class="kategorie"></div>
+            <div id="satz"></div>
+        </div>
+
+        <div id="antworten" class="antworten"></div>
+
+        <div id="feedback"></div>
+
+        <button id="weiter" type="button" style="display: none;">
+            Nächste Aufgabe
+        </button>
+    </section>
+
+
+    <section id="ergebnis">
+        <h2>Test beendet</h2>
+
+        <div class="ergebnis-box">
+            <div id="ergebnisText"></div>
+        </div>
+
+        <button id="neuerTestButton" type="button">
+            Neuen Test starten
+        </button>
+    </section>
+
+</div>
+
+
+<script>
+"use strict";
+
+/*
+    Aufgabenliste
+*/
+
+const aufgaben = [
+    {
+        kategorie: "Präpositionen",
+        satz: "Sie wartet schon seit einer Stunde ___ den Bus.",
+        antworten: ["auf", "an", "über", "bei"],
+        richtig: "auf"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Wir fahren morgen ___ Berlin.",
+        antworten: ["nach", "zu", "bei", "an"],
+        richtig: "nach"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Er interessiert sich sehr ___ Geschichte.",
+        antworten: ["für", "an", "über", "mit"],
+        richtig: "für"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Das Geschenk ist ___ meine Schwester.",
+        antworten: ["für", "zu", "nach", "bei"],
+        richtig: "für"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Sie spricht ___ ihrem Lehrer.",
+        antworten: ["mit", "auf", "für", "nach"],
+        richtig: "mit"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Er träumt ___ einer langen Reise.",
+        antworten: ["von", "über", "an", "mit"],
+        richtig: "von"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Wir treffen uns ___ dem Bahnhof.",
+        antworten: ["vor", "für", "ohne", "gegen"],
+        richtig: "vor"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Der Schlüssel liegt ___ dem Tisch.",
+        antworten: ["auf", "durch", "gegen", "ohne"],
+        richtig: "auf"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Er kommt gerade ___ der Schule.",
+        antworten: ["aus", "nach", "gegen", "ohne"],
+        richtig: "aus"
+    },
+    {
+        kategorie: "Präpositionen",
+        satz: "Sie geht jeden Morgen ___ Fuß zur Arbeit.",
+        antworten: ["zu", "mit", "auf", "bei"],
+        richtig: "zu"
+    },
+
+    {
+        kategorie: "Pronomen",
+        satz: "Das ist der Mann, ___ ich gestern gesehen habe.",
+        antworten: ["den", "dem", "der", "dessen"],
+        richtig: "den"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Die Frau, ___ Auto vor dem Haus steht, wartet draußen.",
+        antworten: ["deren", "dessen", "dem", "die"],
+        richtig: "deren"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Das Kind hilft ___ Mutter im Haushalt.",
+        antworten: ["seiner", "seinen", "seinem", "seine"],
+        richtig: "seiner"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Ich habe ___ gestern eine Nachricht geschickt.",
+        antworten: ["ihm", "er", "ihn", "sein"],
+        richtig: "ihm"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Die Schüler nehmen ___ Bücher aus der Tasche.",
+        antworten: ["ihre", "ihren", "ihrer", "ihrem"],
+        richtig: "ihre"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Kannst du ___ bitte helfen?",
+        antworten: ["mir", "ich", "mich", "mein"],
+        richtig: "mir"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Der Junge wäscht ___ die Hände.",
+        antworten: ["sich", "ihn", "ihm", "sein"],
+        richtig: "sich"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Ich kenne die Frau, ___ du geholfen hast.",
+        antworten: ["der", "die", "deren", "den"],
+        richtig: "der"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Das sind die Bücher, ___ ich bestellt habe.",
+        antworten: ["die", "denen", "deren", "der"],
+        richtig: "die"
+    },
+    {
+        kategorie: "Pronomen",
+        satz: "Er hat ___ gestern im Park getroffen.",
+        antworten: ["sie", "ihr", "ihre", "ihnen"],
+        richtig: "sie"
+    },
+
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["Rhythmus", "Rytmus", "Rythmus", "Rhytmus"],
+        richtig: "Rhythmus"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["parallel", "paralell", "parralel", "paralel"],
+        richtig: "parallel"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["interessant", "interresant", "intressant", "interesant"],
+        richtig: "interessant"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["nämlich", "nähmlich", "nemlich", "nehmlich"],
+        richtig: "nämlich"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["vielleicht", "vileicht", "villeicht", "fielleicht"],
+        richtig: "vielleicht"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["dasselbe", "das selbe", "daßelbe", "dass selbe"],
+        richtig: "dasselbe"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["zurzeit", "zurrzeit", "zuzeit", "zur Zeitt"],
+        richtig: "zurzeit"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["kennenlernen", "kennenlehrnen", "kennelernen", "kennenlärmen"],
+        richtig: "kennenlernen"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["selbstständig", "selbständig", "selbsständig", "selbststendig"],
+        richtig: "selbstständig"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["außerdem", "ausserdem", "auserdem", "außérdem"],
+        richtig: "außerdem"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["notwendig", "nothwendig", "notwändig", "notwenig"],
+        richtig: "notwendig"
+    },
+    {
+        kategorie: "Rechtschreibung",
+        satz: "Welche Schreibweise ist richtig?",
+        antworten: ["Missverständnis", "Mißverständnis", "Misverständnis", "Missverstäntnis"],
+        richtig: "Missverständnis"
+    },
+
+    {
+        kategorie: "Grammatik",
+        satz: "Obwohl es regnete, ___ wir spazieren.",
+        antworten: ["gingen", "ging", "gegangen", "gehen"],
+        richtig: "gingen"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Wenn ich Zeit habe, ___ ich dich an.",
+        antworten: ["rufe", "rufen", "rief", "gerufen"],
+        richtig: "rufe"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Der Lehrer erklärte, dass die Prüfung morgen ___.",
+        antworten: ["stattfindet", "stattfand", "stattgefunden", "stattfinden"],
+        richtig: "stattfindet"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Die Kinder ___ gestern im Garten gespielt.",
+        antworten: ["haben", "ist", "hat", "sind"],
+        richtig: "haben"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Morgen ___ ich früher aufstehen.",
+        antworten: ["muss", "musste", "müssen", "gemusst"],
+        richtig: "muss"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Er ___ gestern lange gearbeitet.",
+        antworten: ["hat", "haben", "ist", "wird"],
+        richtig: "hat"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Die Aufgabe ist schwieriger, ___ ich gedacht habe.",
+        antworten: ["als", "wie", "dass", "wenn"],
+        richtig: "als"
+    },
+    {
+        kategorie: "Grammatik",
+        satz: "Sie läuft schneller, ___ ihr Bruder.",
+        antworten: ["als", "wie", "dass", "ob"],
+        richtig: "als"
+    },
+
+    {
+        kategorie: "Konjunktionen",
+        satz: "Ich bleibe zu Hause, ___ ich krank bin.",
+        antworten: ["weil", "obwohl", "damit", "während"],
+        richtig: "weil"
+    },
+    {
+        kategorie: "Konjunktionen",
+        satz: "Er lernt viel, ___ er die Prüfung bestehen kann.",
+        antworten: ["damit", "weil", "obwohl", "wenn"],
+        richtig: "damit"
+    },
+    {
+        kategorie: "Konjunktionen",
+        satz: "___ es kalt war, ging sie ohne Jacke hinaus.",
+        antworten: ["Obwohl", "Weil", "Damit", "Wenn"],
+        richtig: "Obwohl"
+    },
+    {
+        kategorie: "Konjunktionen",
+        satz: "Ich rufe dich an, ___ ich angekommen bin.",
+        antworten: ["sobald", "obwohl", "damit", "weil"],
+        richtig: "sobald"
+    },
+    {
+        kategorie: "Konjunktionen",
+        satz: "Er bleibt zu Hause, ___ er Kopfschmerzen hat.",
+        antworten: ["weil", "obwohl", "damit", "während"],
+        richtig: "weil"
+    },
+
+    {
+        kategorie: "Groß- und Kleinschreibung",
+        satz: "Beim ___ muss man vorsichtig sein.",
+        antworten: ["Überqueren", "überqueren", "Überqueren", "überQueren"],
+        richtig: "Überqueren"
+    },
+    {
+        kategorie: "Groß- und Kleinschreibung",
+        satz: "Sie hat viel ___ beim Lernen.",
+        antworten: ["Ausdauer", "ausdauer", "AUSdauer", "ausDauer"],
+        richtig: "Ausdauer"
+    },
+    {
+        kategorie: "Groß- und Kleinschreibung",
+        satz: "Wir wünschen dir alles ___.",
+        antworten: ["Gute", "gute", "GUTE", "GutE"],
+        richtig: "Gute"
+    },
+    {
+        kategorie: "Groß- und Kleinschreibung",
+        satz: "Er hat im ___ gearbeitet.",
+        antworten: ["Freien", "freien", "FREIEN", "freiEn"],
+        richtig: "Freien"
+    }
+];
+
+
+/*
+    Variablen
+*/
+
+let aktuelleAufgaben = [];
+let aktuelleFrage = 0;
+let punktzahl = 0;
+let beantworteteFragen = 0;
+let verbleibendeZeit = 30;
+let timer = null;
+let antwortAusgewaehlt = false;
+
+
+/*
+    Hilfsfunktion zum Mischen
+*/
+
+function mischen(array) {
+    return array.sort(function() {
+        return Math.random() - 0.5;
+    });
+}
+
+
+/*
+    Neue zufällige Aufgabenliste erstellen
+*/
+
+function neueAufgabenlisteErstellen() {
+    aktuelleAufgaben = mischen(
+        aufgaben.map(function(aufgabe) {
+            return {
+                kategorie: aufgabe.kategorie,
+                satz: aufgabe.satz,
+                richtig: aufgabe.richtig,
+                antworten: mischen([...aufgabe.antworten])
+            };
+        })
+    );
+}
+
+
+/*
+    Test starten
+*/
+
+function testStarten() {
+    const auswahl = document.getElementById("zeitlimit").value;
+
+    verbleibendeZeit = Number(auswahl);
+    aktuelleFrage = 0;
+    punktzahl = 0;
+    beantworteteFragen = 0;
+
+    neueAufgabenlisteErstellen();
+
+    document.getElementById("startseite").style.display = "none";
+    document.getElementById("ergebnis").style.display = "none";
+    document.getElementById("quiz").style.display = "block";
+
+    document.getElementById("punktestand").textContent = "Punkte: 0";
+    document.getElementById("zeit").textContent = verbleibendeZeit;
+
+    frageAnzeigen();
+    timerStarten();
+}
+
+
+/*
+    Timer starten
+*/
+
+function timerStarten() {
+    clearInterval(timer);
+
+    timer = setInterval(function() {
+        verbleibendeZeit--;
+
+        document.getElementById("zeit").textContent = verbleibendeZeit;
+
+        if (verbleibendeZeit <= 0) {
+            testBeenden();
+        }
+    }, 1000);
+}
+
+
+/*
+    Aufgabe anzeigen
+*/
+
+function frageAnzeigen() {
+    if (aktuelleFrage >= aktuelleAufgaben.length) {
+        aktuelleFrage = 0;
+        neueAufgabenlisteErstellen();
+    }
+
+    const aufgabe = aktuelleAufgaben[aktuelleFrage];
+
+    antwortAusgewaehlt = false;
+
+    document.getElementById("frageNummer").textContent =
+        "Aufgabe: " + (beantworteteFragen + 1);
+
+    document.getElementById("kategorie").textContent =
+        aufgabe.kategorie;
+
+    document.getElementById("satz").textContent =
+        aufgabe.satz;
+
+    const antwortContainer = document.getElementById("antworten");
+
+    antwortContainer.innerHTML = "";
+
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("weiter").style.display = "none";
+
+    aufgabe.antworten.forEach(function(antwort) {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "antwort";
+        button.textContent = antwort;
+
+        button.addEventListener("click", function() {
+            antwortPruefen(button, antwort, aufgabe.richtig);
+        });
+
+        antwortContainer.appendChild(button);
+    });
+}
+
+
+/*
+    Antwort prüfen
+*/
+
+function antwortPruefen(button, ausgewaehlteAntwort, richtigeAntwort) {
+    if (antwortAusgewaehlt) {
+        return;
+    }
+
+    antwortAusgewaehlt = true;
+    beantworteteFragen++;
+
+    const buttons = document.querySelectorAll(".antwort");
+
+    buttons.forEach(function(element) {
+        element.disabled = true;
+
+        if (element.textContent === richtigeAntwort) {
+            element.classList.add("richtig");
+        }
+    });
+
+    const feedback = document.getElementById("feedback");
+
+    if (ausgewaehlteAntwort === richtigeAntwort) {
+        punktzahl++;
+
+        button.classList.add("richtig");
+        feedback.textContent = "Richtig!";
+        feedback.style.color = "#198754";
+    } else {
+        button.classList.add("falsch");
+        feedback.textContent =
+            "Leider falsch. Richtig ist: " + richtigeAntwort;
+        feedback.style.color = "#c1121f";
+    }
+
+    document.getElementById("punktestand").textContent =
+        "Punkte: " + punktzahl;
+
+    document.getElementById("weiter").style.display = "block";
+}
+
+
+/*
+    Nächste Aufgabe
+*/
+
+function naechsteFrage() {
+    aktuelleFrage++;
+    frageAnzeigen();
+}
+
+
+/*
+    Test beenden
+*/
+
+function testBeenden() {
+    clearInterval(timer);
+
+    document.getElementById("quiz").style.display = "none";
+    document.getElementById("ergebnis").style.display = "block";
+
+    let prozent = 0;
+
+    if (beantworteteFragen > 0) {
+        prozent = Math.round(
+            (punktzahl / beantworteteFragen) * 100
+        );
+    }
+
+    document.getElementById("ergebnisText").innerHTML =
+        "Du hast <strong>" + punktzahl + "</strong> von " +
+        "<strong>" + beantworteteFragen + "</strong> Aufgaben richtig beantwortet." +
+        "<br><br>" +
+        "Dein Ergebnis: <strong>" + prozent + "%</strong>";
+}
+
+
+/*
+    Zur Startseite zurückkehren
+*/
+
+function neuenTestStarten() {
+    clearInterval(timer);
+
+    document.getElementById("ergebnis").style.display = "none";
+    document.getElementById("quiz").style.display = "none";
+    document.getElementById("startseite").style.display = "block";
+}
+
+
+/*
+    Ereignisse für die Buttons
+*/
+
+document.getElementById("startButton").addEventListener(
+    "click",
+    testStarten
+);
+
+document.getElementById("weiter").addEventListener(
+    "click",
+    naechsteFrage
+);
+
+document.getElementById("neuerTestButton").addEventListener(
+    "click",
+    neuenTestStarten
+);
+</script>
+
+</body>
+</html>

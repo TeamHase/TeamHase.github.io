@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rechtschreibtest</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: Arial, sans-serif;
+            color: #222;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 750px;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #1e3c72;
+        }
+
+        .description {
+            text-align: center;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .timer {
+            color: #c62828;
+            font-size: 1.2rem;
+        }
+
+        .progress {
+            height: 10px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #2e7d32;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .question-box {
+            background: #f4f7fb;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .category {
+            color: #1e3c72;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .question {
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .answer-button {
+            padding: 16px;
+            border: 2px solid #1e3c72;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .answer-button:hover {
+            background: #e8f0ff;
+            transform: translateY(-2px);
+        }
+
+        .answer-button.correct {
+            background: #c8e6c9;
+            border-color: #2e7d32;
+            color: #1b5e20;
+        }
+
+        .answer-button.wrong {
+            background: #ffcdd2;
+            border-color: #c62828;
+            color: #b71c1c;
+        }
+
+        .answer-button:disabled {
+            cursor: default;
+        }
+
+        .feedback {
+            min-height: 28px;
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .next-button,
+        .restart-button,
+        .start-button {
+            display: block;
+            margin: 20px auto 0;
+            padding: 13px 25px;
+            border: none;
+            border-radius: 9px;
+            background: #1e3c72;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .next-button:hover,
+        .restart-button:hover,
+        .start-button:hover {
+            background: #142b52;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .result {
+            text-align: center;
+        }
+
+        .result h2 {
+            color: #1e3c72;
+        }
+
+        .result-score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .settings {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        select {
+            padding: 8px 12px;
+            font-size: 1rem;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .answers {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar {
+                flex-direction: column;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="start-screen">
+        <h1>Rechtschreibtest</h1>
+
+        <p class="description">
+            Wähle jeweils die richtige Schreibweise aus.
+            Pro Frage hast du 30 Sekunden Zeit.
+        </p>
+
+        <div class="settings">
+            <label for="question-count">Anzahl der Fragen:</label>
+            <select id="question-count">
+                <option value="5">5 Fragen</option>
+                <option value="10" selected>10 Fragen</option>
+                <option value="15">15 Fragen</option>
+                <option value="20">20 Fragen</option>
+            </select>
+        </div>
+
+        <button class="start-button" onclick="startTest()">
+            Test starten
+        </button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="top-bar">
+            <div id="question-counter">Frage 1 von 10</div>
+            <div class="timer">
+                Zeit: <span id="time">30</span> Sekunden
+            </div>
+        </div>
+
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div class="question-box">
+            <div id="category" class="category"></div>
+            <div id="question" class="question"></div>
+        </div>
+
+        <div id="answers" class="answers"></div>
+
+        <div id="feedback" class="feedback"></div>
+
+        <button id="next-button" class="next-button hidden" onclick="nextQuestion()">
+            Nächste Frage
+        </button>
+    </div>
+
+    <div id="result-screen" class="result hidden">
+        <h1>Test beendet</h1>
+        <h2>Dein Ergebnis</h2>
+
+        <div id="result-score" class="result-score"></div>
+        <p id="result-message"></p>
+
+        <button class="restart-button" onclick="restartTest()">
+            Noch einmal starten
+        </button>
+    </div>
+
+</div>
+
+<script>
+    const TIME_LIMIT = 30;
+
+    /*
+     * Der Fragenpool kann beliebig erweitert werden.
+     * Jede Frage besitzt:
+     * - category: Fehlerbereich
+     * - question: Fragetext
+     * - options: vier Antwortmöglichkeiten
+     * - correct: richtige Antwort
+     */
+    const questionPool = [
+        {
+            category: "Doppel-s / ß",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["dass", "daß", "dasß", "dasss"],
+            correct: "dass"
+        },
+        {
+            category: "Doppel-s / ß",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Straße", "Strasse", "Straase", "Stra ße"],
+            correct: "Straße"
+        },
+        {
+            category: "Doppel-s / ß",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["groß", "gross", "gros", "großs"],
+            correct: "groß"
+        },
+        {
+            category: "Doppel-s / ß",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Schluss", "Schluß", "Schluz", "Schlussß"],
+            correct: "Schluss"
+        },
+        {
+            category: "Doppelkonsonanten",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Schifffahrt", "Schiffahrt", "Schiff-Fahrt", "Schifahrt"],
+            correct: "Schifffahrt"
+        },
+        {
+            category: "Doppelkonsonanten",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["nummerieren", "numerieren", "nummeriren", "numerrieren"],
+            correct: "nummerieren"
+        },
+        {
+            category: "Doppelkonsonanten",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Brennnessel", "Brennessel", "Brenn-Nessel", "Brennessell"],
+            correct: "Brennnessel"
+        },
+        {
+            category: "Zusammen- und Getrenntschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Rad fahren", "Radfahren", "Rad-fahren", "Radh fahren"],
+            correct: "Rad fahren"
+        },
+        {
+            category: "Zusammen- und Getrenntschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["kennenlernen", "kennen lernen", "kennen-lernen", "kennelernen"],
+            correct: "kennenlernen"
+        },
+        {
+            category: "Zusammen- und Getrenntschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["spazieren gehen", "spazierengehen", "spazieren-gehen", "spatzieren gehen"],
+            correct: "spazieren gehen"
+        },
+        {
+            category: "Groß- und Kleinschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["im Allgemeinen", "im allgemeinen", "Im allgemeinen", "im Allgemeinem"],
+            correct: "im Allgemeinen"
+        },
+        {
+            category: "Groß- und Kleinschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["etwas Neues", "etwas neues", "Etwas Neues", "etwas Neuses"],
+            correct: "etwas Neues"
+        },
+        {
+            category: "Groß- und Kleinschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["zum Ersten", "zum ersten", "Zum ersten", "zum Erstem"],
+            correct: "zum Ersten"
+        },
+        {
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Biografie", "Biographie", "Biografhie", "Biograhie"],
+            correct: "Biografie"
+        },
+        {
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Fotografie", "Photographie", "Fotographie", "Photografie"],
+            correct: "Fotografie"
+        },
+        {
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Delphin", "Delfin", "Delfhin", "Delphien"],
+            correct: "Delfin"
+        },
+        {
+            category: "Fremdwörter",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Katastrophe", "Katastrofe", "Katasthrophe", "Katastropfe"],
+            correct: "Katastrophe"
+        },
+        {
+            category: "Bindestrichschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["E-Mail", "Email", "E Mail", "E-Mail-"],
+            correct: "E-Mail"
+        },
+        {
+            category: "Bindestrichschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["20-jährig", "20jährig", "20 jährig", "20-jährich"],
+            correct: "20-jährig"
+        },
+        {
+            category: "Bindestrichschreibung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["Drei-Zimmer-Wohnung", "Dreizimmerwohnung", "Drei Zimmer Wohnung", "Drei-Zimmerwohnung"],
+            correct: "Drei-Zimmer-Wohnung"
+        },
+        {
+            category: "Worttrennung",
+            question: "Welche Trennung ist richtig?",
+            options: ["Au-to", "A-u-to", "Aut-o", "Auto-"],
+            correct: "Au-to"
+        },
+        {
+            category: "Worttrennung",
+            question: "Welche Trennung ist richtig?",
+            options: ["war-um", "wa-rum", "w-arum", "warum-"],
+            correct: "war-um"
+        },
+        {
+            category: "Laut-Buchstaben-Zuordnung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["aufwendig", "aufwändig", "aufwendich", "aufwändich"],
+            correct: "aufwendig"
+        },
+        {
+            category: "Laut-Buchstaben-Zuordnung",
+            question: "Welche Schreibweise ist richtig?",
+            options: ["selbstständig", "selbständig", "selbststendich", "selbständigk"],
+            correct: "selbstständig"
+        }
+    ];
+
+    let questions = [];
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = TIME_LIMIT;
+    let answered = false;
+
+    function shuffle(array) {
+        return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function startTest() {
+        const questionCount = Number(
+            document.getElementById("question-count").value
+        );
+
+        questions = shuffle(questionPool).slice(0, questionCount);
+        currentQuestion = 0;
+        score = 0;
+
+        document.getElementById("start-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.remove("hidden");
+
+        showQuestion();
+    }
+
+    function showQuestion() {
+        clearInterval(timer);
+        answered = false;
+        timeLeft = TIME_LIMIT;
+
+        const current = questions[currentQuestion];
+
+        document.getElementById("question-counter").textContent =
+            `Frage ${currentQuestion + 1} von ${questions.length}`;
+
+        document.getElementById("category").textContent =
+            `Bereich: ${current.category}`;
+
+        document.getElementById("question").textContent =
+            current.question;
+
+        document.getElementById("time").textContent = timeLeft;
+
+        const progressBar = document.getElementById("progress-bar");
+        progressBar.style.width = "100%";
+        progressBar.style.background = "#2e7d32";
+
+        document.getElementById("feedback").textContent = "";
+        document.getElementById("next-button").classList.add("hidden");
+
+        const answersContainer = document.getElementById("answers");
+        answersContainer.innerHTML = "";
+
+        shuffle(current.options).forEach(option => {
+            const button = document.createElement("button");
+
+            button.className = "answer-button";
+            button.textContent = option;
+            button.onclick = () => checkAnswer(button, option);
+
+            answersContainer.appendChild(button);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+
+            document.getElementById("time").textContent = timeLeft;
+
+            const percentage = (timeLeft / TIME_LIMIT) * 100;
+            const progressBar = document.getElementById("progress-bar");
+
+            progressBar.style.width = percentage + "%";
+
+            if (timeLeft <= 10) {
+                progressBar.style.background = "#f57c00";
+            }
+
+            if (timeLeft <= 5) {
+                progressBar.style.background = "#c62828";
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                timeExpired();
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(button, selectedAnswer) {
+        if (answered) {
+            return;
+        }
+
+        answered = true;
+        clearInterval(timer);
+
+        const current = questions[currentQuestion];
+        const allButtons = document.querySelectorAll(".answer-button");
+
+        allButtons.forEach(answerButton => {
+            answerButton.disabled = true;
+
+            if (answerButton.textContent === current.correct) {
+                answerButton.classList.add("correct");
+            }
+        });
+
+        if (selectedAnswer === current.correct) {
+            score++;
+            button.classList.add("correct");
+            document.getElementById("feedback").textContent =
+                "Richtig!";
+            document.getElementById("feedback").style.color = "#2e7d32";
+        } else {
+            button.classList.add("wrong");
+            document.getElementById("feedback").textContent =
+                `Falsch. Richtig wäre: ${current.correct}`;
+            document.getElementById("feedback").style.color = "#c62828";
+        }
+
+        document.getElementById("next-button").classList.remove("hidden");
+    }
+
+    function timeExpired() {
+        if (answered) {
+            return;
+        }
+
+        answered = true;
+
+        const current = questions[currentQuestion];
+        const allButtons = document.querySelectorAll(".answer-button");
+
+        allButtons.forEach(button => {
+            button.disabled = true;
+
+            if (button.textContent === current.correct) {
+                button.classList.add("correct");
+            }
+        });
+
+        document.getElementById("feedback").textContent =
+            `Zeit abgelaufen. Richtig wäre: ${current.correct}`;
+
+        document.getElementById("feedback").style.color = "#c62828";
+
+        document.getElementById("next-button").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+
+        if (currentQuestion >= questions.length) {
+            showResult();
+        } else {
+            showQuestion();
+        }
+    }
+
+    function showResult() {
+        clearInterval(timer);
+
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+
+        const percentage = Math.round((score / questions.length) * 100);
+
+        document.getElementById("result-score").textContent =
+            `${score} von ${questions.length} Punkten (${percentage} %)`;
+
+        let message;
+
+        if (percentage >= 90) {
+            message = "Hervorragend! Du beherrschst die wichtigsten Regeln sehr sicher.";
+        } else if (percentage >= 70) {
+            message = "Gutes Ergebnis! Einige Regeln kannst du noch wiederholen.";
+        } else if (percentage >= 50) {
+            message = "Befriedigendes Ergebnis. Eine weitere Übungsrunde wäre sinnvoll.";
+        } else {
+            message = "Übe die Rechtschreibregeln noch einmal und starte anschließend einen neuen Test.";
+        }
+
+        document.getElementById("result-message").textContent = message;
+    }
+
+    function restartTest() {
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("start-screen").classList.remove("hidden");
+    }
+</script>
+
+</body>
+</html>

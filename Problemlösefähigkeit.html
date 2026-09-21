@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logisches Schlussfolgern</title>
+
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --card: #ffffff;
+      --primary: #2457a6;
+      --primary-dark: #173d79;
+      --border: #b8c2d1;
+      --text: #172033;
+      --muted: #667085;
+      --success: #16834b;
+      --danger: #bd2638;
+      --warning: #d88700;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .app {
+      width: min(1100px, 96vw);
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    header {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 22px 26px;
+      box-shadow: 0 5px 20px rgba(15, 30, 55, .08);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+    }
+
+    .description {
+      max-width: 850px;
+      line-height: 1.55;
+      color: #3f4b5e;
+      margin: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .stat strong {
+      color: var(--text);
+    }
+
+    .timer {
+      min-width: 88px;
+      padding: 9px 15px;
+      border-radius: 8px;
+      background: #e8eef9;
+      color: var(--primary-dark);
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .timer.warning {
+      color: #fff;
+      background: var(--warning);
+    }
+
+    .timer.danger {
+      color: #fff;
+      background: var(--danger);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .primary-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 17px;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .primary-button:hover {
+      background: var(--primary-dark);
+    }
+
+    .game {
+      display: grid;
+      grid-template-columns: minmax(300px, 1fr) minmax(280px, .75fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 5px 20px rgba(15, 30, 55, .08);
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 1.18rem;
+    }
+
+    .grid {
+      width: min(100%, 570px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .cell,
+    .answer {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: #fafcff;
+    }
+
+    .cell.empty {
+      border: 3px dashed var(--primary);
+      background: #edf4ff;
+    }
+
+    .cell.empty::after {
+      content: "?";
+      color: var(--primary);
+      font-size: 2rem;
+      font-weight: bold;
+      opacity: .7;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .answer {
+      min-height: 110px;
+      padding: 8px;
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+
+    .answer:hover,
+    .answer:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(36, 87, 166, .2);
+      outline: none;
+    }
+
+    .answer-number {
+      position: absolute;
+      top: 5px;
+      left: 7px;
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: bold;
+    }
+
+    .answer.correct {
+      border-color: var(--success);
+      background: #e5f7ed;
+    }
+
+    .answer.wrong {
+      border-color: var(--danger);
+      background: #ffebee;
+    }
+
+    .tile {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile-symbol {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 43px;
+      font-family: "Arial Unicode MS", "Segoe UI Symbol", sans-serif;
+      color: var(--tile-color, #1e50a2);
+      transform: rotate(var(--rotation, 0deg));
+      text-shadow: 0 1px 1px rgba(0, 0, 0, .1);
+    }
+
+    .tile-pattern {
+      position: absolute;
+      inset: 9px;
+      border: 2px solid currentColor;
+      opacity: .16;
+      pointer-events: none;
+    }
+
+    .tile-pattern.dots {
+      background-image: radial-gradient(currentColor 1.3px, transparent 1.5px);
+      background-size: 7px 7px;
+    }
+
+    .tile-pattern.lines {
+      background: repeating-linear-gradient(
+        45deg,
+        currentColor 0,
+        currentColor 2px,
+        transparent 2px,
+        transparent 7px
+      );
+    }
+
+    .tile-pattern.cross {
+      background:
+        linear-gradient(45deg, transparent 46%, currentColor 47%, currentColor 53%, transparent 54%),
+        linear-gradient(-45deg, transparent 46%, currentColor 47%, currentColor 53%, transparent 54%);
+    }
+
+    .feedback {
+      min-height: 28px;
+      margin-top: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .feedback.success {
+      color: var(--success);
+    }
+
+    .feedback.error {
+      color: var(--danger);
+    }
+
+    .feedback.info {
+      color: var(--primary);
+    }
+
+    .rule-info {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #f3f6fb;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    .instructions {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+      .game {
+        grid-template-columns: 1fr;
+      }
+
+      .cell {
+        min-height: 75px;
+      }
+
+      .answer {
+        min-height: 95px;
+      }
+
+      .tile-symbol {
+        font-size: 34px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .grid {
+        gap: 5px;
+      }
+
+      .cell {
+        min-height: 64px;
+      }
+
+      .tile {
+        transform: scale(.8);
+      }
+
+      .panel,
+      header {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <h1>Logisches Schlussfolgern</h1>
+
+      <p class="description">
+        Ergänzen Sie das Raster logisch. In einem Raster aus 16 Kästchen fehlt
+        ein Symbol. Wählen Sie aus den sechs Antwortmöglichkeiten das Symbol,
+        das an die Stelle des Fragezeichens gehört.
+      </p>
+
+      <div class="toolbar">
+        <div class="stats">
+          <div class="stat">Aufgabe: <strong id="taskNumber">1</strong></div>
+          <div class="stat">Richtig: <strong id="correctCount">0</strong></div>
+          <div class="stat">Fehler: <strong id="wrongCount">0</strong></div>
+        </div>
+
+        <div id="timer" class="timer" aria-live="polite">60 s</div>
+
+        <button id="newTaskButton" class="primary-button">
+          Neue Aufgabe
+        </button>
+      </div>
+    </header>
+
+    <section class="game">
+      <div class="panel">
+        <h2>Aufgabenraster</h2>
+
+        <div id="grid" class="grid" aria-label="Aufgabenraster"></div>
+
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+
+        <div id="ruleInfo" class="rule-info">
+          Die verwendete Regel wird nach der Beantwortung angezeigt.
+        </div>
+
+        <div class="instructions">
+          Wählen Sie eine Antwort mit der Maus oder drücken Sie eine Taste von
+          <strong>1</strong> bis <strong>6</strong>. Jede Aufgabe muss innerhalb
+          von 60 Sekunden gelöst werden.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Antwortmöglichkeiten</h2>
+        <div id="answers" class="answers"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const MAX_TIME = 60;
+
+    const SYMBOLS = [
+      "●",
+      "▲",
+      "■",
+      "◆",
+      "★",
+      "✚",
+      "⬟",
+      "☀"
+    ];
+
+    const COLORS = [
+      "#2457a6",
+      "#c62843",
+      "#16834b",
+      "#a35b00",
+      "#7035a8",
+      "#00838f"
+    ];
+
+    const PATTERNS = [
+      "none",
+      "dots",
+      "lines",
+      "cross"
+    ];
+
+    const puzzleTypes = [
+      {
+        name: "Zeilen- und Spaltenregel",
+        description:
+          "Symbol, Farbe, Drehung und Muster verändern sich zeilen- oder spaltenweise nach festen Schrittweiten."
+      },
+      {
+        name: "Periodische Reihenfolge",
+        description:
+          "Die Eigenschaften wiederholen sich regelmäßig. Jede Zeile und jede Spalte folgt einer erkennbaren Abfolge."
+      },
+      {
+        name: "Kombinierte Regel",
+        description:
+          "Die Position eines Kästchens ergibt sich aus einer Kombination seiner Zeilen- und Spaltenposition."
+      },
+      {
+        name: "Gegenläufige Regel",
+        description:
+          "Einige Eigenschaften nehmen nach rechts zu, während andere gleichzeitig abnehmen."
+      }
+    ];
+
+    let currentPuzzle = null;
+    let remainingSeconds = MAX_TIME;
+    let timerHandle = null;
+    let taskNumber = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let answerLocked = false;
+
+    const gridElement = document.getElementById("grid");
+    const answersElement = document.getElementById("answers");
+    const timerElement = document.getElementById("timer");
+    const feedbackElement = document.getElementById("feedback");
+    const ruleInfoElement = document.getElementById("ruleInfo");
+
+    document
+      .getElementById("newTaskButton")
+      .addEventListener("click", createNewPuzzle);
+
+    document.addEventListener("keydown", event => {
+      if (answerLocked) return;
+
+      const number = Number(event.key);
+
+      if (number >= 1 && number <= 6) {
+        const answerButton = answersElement.querySelector(
+          `[data-index="${number - 1}"]`
+        );
+
+        if (answerButton) {
+          answerButton.click();
+        }
+      }
+    });
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function randomItem(array) {
+      return array[randomInt(array.length)];
+    }
+
+    function mod(value, length) {
+      return ((value % length) + length) % length;
+    }
+
+    function shuffle(array) {
+      const copy = [...array];
+
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randomInt(i + 1);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+
+      return copy;
+    }
+
+    function createTile(symbol, color, rotation, pattern) {
+      return {
+        symbol,
+        color,
+        rotation,
+        pattern
+      };
+    }
+
+    function tileKey(tile) {
+      return [
+        tile.symbol,
+        tile.color,
+        tile.rotation,
+        tile.pattern
+      ].join("|");
+    }
+
+    function equalTiles(a, b) {
+      return tileKey(a) === tileKey(b);
+    }
+
+    function mutateTile(tile) {
+      const result = { ...tile };
+      const property = randomItem(["symbol", "color", "rotation", "pattern"]);
+
+      if (property === "symbol") {
+        do {
+          result.symbol = randomItem(SYMBOLS);
+        } while (result.symbol === tile.symbol);
+      }
+
+      if (property === "color") {
+        do {
+          result.color = randomItem(COLORS);
+        } while (result.color === tile.color);
+      }
+
+      if (property === "rotation") {
+        do {
+          result.rotation = randomInt(4) * 45;
+        } while (result.rotation === tile.rotation);
+      }
+
+      if (property === "pattern") {
+        do {
+          result.pattern = randomItem(PATTERNS);
+        } while (result.pattern === tile.pattern);
+      }
+
+      return result;
+    }
+
+    /*
+      Die vier Eigenschaften eines Kästchens werden durch mathematische
+      Regeln aus Zeile und Spalte erzeugt. Dadurch entstehen praktisch
+      unbegrenzt viele Aufgaben.
+    */
+    function generatePuzzle() {
+      const typeIndex = randomInt(puzzleTypes.length);
+      const type = puzzleTypes[typeIndex];
+
+      const base = {
+        symbol: randomInt(SYMBOLS.length),
+        color: randomInt(COLORS.length),
+        rotation: randomInt(8),
+        pattern: randomInt(PATTERNS.length)
+      };
+
+      let rowStep;
+      let colStep;
+
+      if (typeIndex === 0) {
+        rowStep = {
+          symbol: 1 + randomInt(3),
+          color: 1 + randomInt(2),
+          rotation: 1 + randomInt(3),
+          pattern: 1
+        };
+
+        colStep = {
+          symbol: 1 + randomInt(3),
+          color: 1 + randomInt(2),
+          rotation: 1 + randomInt(3),
+          pattern: 1 + randomInt(2)
+        };
+      }
+
+      if (typeIndex === 1) {
+        rowStep = {
+          symbol: 1,
+          color: 2,
+          rotation: 2,
+          pattern: 1
+        };
+
+        colStep = {
+          symbol: 2,
+          color: 1,
+          rotation: 1,
+          pattern: 1
+        };
+      }
+
+      if (typeIndex === 2) {
+        rowStep = {
+          symbol: 1 + randomInt(4),
+          color: 1 + randomInt(3),
+          rotation: 1 + randomInt(4),
+          pattern: 1 + randomInt(2)
+        };
+
+        colStep = {
+          symbol: 1 + randomInt(4),
+          color: 1 + randomInt(3),
+          rotation: 1 + randomInt(4),
+          pattern: 1 + randomInt(2)
+        };
+      }
+
+      if (typeIndex === 3) {
+        rowStep = {
+          symbol: 1 + randomInt(3),
+          color: 1 + randomInt(2),
+          rotation: 1 + randomInt(3),
+          pattern: 1
+        };
+
+        colStep = {
+          symbol: -1 - randomInt(3),
+          color: -1 - randomInt(2),
+          rotation: -1 - randomInt(3),
+          pattern: -1
+        };
+      }
+
+      const matrix = [];
+
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          const symbolIndex = mod(
+            base.symbol +
+            row * rowStep.symbol +
+            col * colStep.symbol,
+            SYMBOLS.length
+          );
+
+          const colorIndex = mod(
+            base.color +
+            row * rowStep.color +
+            col * colStep.color,
+            COLORS.length
+          );
+
+          const rotationIndex = mod(
+            base.rotation +
+            row * rowStep.rotation +
+            col * colStep.rotation,
+            8
+          );
+
+          const patternIndex = mod(
+            base.pattern +
+            row * rowStep.pattern +
+            col * colStep.pattern,
+            PATTERNS.length
+          );
+
+          matrix.push(
+            createTile(
+              SYMBOLS[symbolIndex],
+              COLORS[colorIndex],
+              rotationIndex * 45,
+              PATTERNS[patternIndex]
+            )
+          );
+        }
+      }
+
+      const blankIndex = randomInt(16);
+      const correctTile = matrix[blankIndex];
+
+      const distractors = [];
+      const usedKeys = new Set([tileKey(correctTile)]);
+
+      while (distractors.length < 5) {
+        let candidate = mutateTile(correctTile);
+
+        /*
+          Einige Antwortmöglichkeiten werden stärker verändert,
+          damit verschiedene Fehlermuster entstehen.
+        */
+        if (Math.random() > .5) {
+          candidate = mutateTile(candidate);
+        }
+
+        const key = tileKey(candidate);
+
+        if (!usedKeys.has(key)) {
+          usedKeys.add(key);
+          distractors.push(candidate);
+        }
+      }
+
+      const answers = shuffle([
+        correctTile,
+        ...distractors
+      ]);
+
+      return {
+        type,
+        matrix,
+        blankIndex,
+        correctTile,
+        answers,
+        correctAnswerIndex: answers.findIndex(tile =>
+          equalTiles(tile, correctTile)
+        )
+      };
+    }
+
+    function renderTile(tile) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tile";
+      wrapper.setAttribute(
+        "aria-label",
+        `${tile.symbol}, Farbe, Drehung ${tile.rotation} Grad`
+      );
+
+      const symbol = document.createElement("div");
+      symbol.className = "tile-symbol";
+      symbol.textContent = tile.symbol;
+      symbol.style.setProperty("--tile-color", tile.color);
+      symbol.style.setProperty("--rotation", `${tile.rotation}deg`);
+
+      const pattern = document.createElement("div");
+      pattern.className = `tile-pattern ${tile.pattern}`;
+      pattern.style.color = tile.color;
+
+      wrapper.appendChild(pattern);
+      wrapper.appendChild(symbol);
+
+      return wrapper;
+    }
+
+    function renderGrid() {
+      gridElement.innerHTML = "";
+
+      currentPuzzle.matrix.forEach((tile, index) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        if (index === currentPuzzle.blankIndex) {
+          cell.classList.add("empty");
+          cell.setAttribute("aria-label", "Leeres Kästchen");
+        } else {
+          cell.appendChild(renderTile(tile));
+        }
+
+        gridElement.appendChild(cell);
+      });
+    }
+
+    function renderAnswers() {
+      answersElement.innerHTML = "";
+
+      currentPuzzle.answers.forEach((tile, index) => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.type = "button";
+        button.dataset.index = index;
+        button.setAttribute(
+          "aria-label",
+          `Antwortmöglichkeit ${index + 1}`
+        );
+
+        const number = document.createElement("span");
+        number.className = "answer-number";
+        number.textContent = index + 1;
+
+        button.appendChild(number);
+        button.appendChild(renderTile(tile));
+
+        button.addEventListener("click", () => {
+          checkAnswer(index);
+        });
+
+        answersElement.appendChild(button);
+      });
+    }
+
+    function updateTimer() {
+      timerElement.textContent = `${remainingSeconds} s`;
+
+      timerElement.classList.remove("warning", "danger");
+
+      if (remainingSeconds <= 10) {
+        timerElement.classList.add("danger");
+      } else if (remainingSeconds <= 20) {
+        timerElement.classList.add("warning");
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timerHandle);
+
+      remainingSeconds = MAX_TIME;
+      updateTimer();
+
+      timerHandle = setInterval(() => {
+        remainingSeconds--;
+        updateTimer();
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timerHandle);
+          timeExpired();
+        }
+      }, 1000);
+    }
+
+    function disableAnswers() {
+      document.querySelectorAll(".answer").forEach(button => {
+        button.disabled = true;
+      });
+    }
+
+    function showCorrectAnswer() {
+      const buttons = document.querySelectorAll(".answer");
+
+      buttons.forEach((button, index) => {
+        if (index === currentPuzzle.correctAnswerIndex) {
+          button.classList.add("correct");
+        }
+      });
+    }
+
+    function checkAnswer(index) {
+      if (answerLocked) return;
+
+      answerLocked = true;
+      clearInterval(timerHandle);
+      disableAnswers();
+
+      const buttons = document.querySelectorAll(".answer");
+
+      if (index === currentPuzzle.correctAnswerIndex) {
+        correctCount++;
+        feedbackElement.textContent = "Richtig! Die Regel wurde korrekt angewendet.";
+        feedbackElement.className = "feedback success";
+        buttons[index].classList.add("correct");
+      } else {
+        wrongCount++;
+        feedbackElement.textContent =
+          "Leider falsch. Die richtige Antwort ist grün markiert.";
+        feedbackElement.className = "feedback error";
+        buttons[index].classList.add("wrong");
+        showCorrectAnswer();
+      }
+
+      ruleInfoElement.textContent =
+        `Regelvariante: ${currentPuzzle.type.name}. ` +
+        currentPuzzle.type.description;
+
+      updateStatistics();
+
+      setTimeout(() => {
+        createNewPuzzle();
+      }, 2500);
+    }
+
+    function timeExpired() {
+      if (answerLocked) return;
+
+      answerLocked = true;
+      wrongCount++;
+      disableAnswers();
+      showCorrectAnswer();
+
+      feedbackElement.textContent =
+        "Die Zeit ist abgelaufen. Die richtige Antwort ist grün markiert.";
+      feedbackElement.className = "feedback error";
+
+      ruleInfoElement.textContent =
+        `Regelvariante: ${currentPuzzle.type.name}. ` +
+        currentPuzzle.type.description;
+
+      updateStatistics();
+
+      setTimeout(() => {
+        createNewPuzzle();
+      }, 2500);
+    }
+
+    function updateStatistics() {
+      document.getElementById("taskNumber").textContent = taskNumber;
+      document.getElementById("correctCount").textContent = correctCount;
+      document.getElementById("wrongCount").textContent = wrongCount;
+    }
+
+    function createNewPuzzle() {
+      clearInterval(timerHandle);
+
+      taskNumber++;
+      answerLocked = false;
+      currentPuzzle = generatePuzzle();
+
+      feedbackElement.textContent = "";
+      feedbackElement.className = "feedback";
+
+      ruleInfoElement.textContent =
+        "Die verwendete Regel wird nach der Beantwortung angezeigt.";
+
+      renderGrid();
+      renderAnswers();
+      updateStatistics();
+      startTimer();
+    }
+
+    createNewPuzzle();
+  </script>
+</body>
+</html>

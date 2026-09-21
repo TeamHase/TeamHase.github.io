@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technik- und Mechaniktest</title>
+
+  <style>
+    :root {
+      --primary: #1769aa;
+      --primary-dark: #0d4775;
+      --success: #198754;
+      --danger: #dc3545;
+      --warning: #f0ad00;
+      --light: #f4f7fa;
+      --dark: #1d2733;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #dceeff, #f7f9fc);
+      color: var(--dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 28px;
+    }
+
+    .intro {
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .setting-box {
+      background: var(--light);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .setting-box strong {
+      display: block;
+      font-size: 22px;
+      color: var(--primary-dark);
+      margin-top: 5px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 13px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .primary-button {
+      background: var(--primary);
+      color: white;
+      width: 100%;
+    }
+
+    .secondary-button {
+      background: #6c757d;
+      color: white;
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .progress-text {
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
+
+    .timer {
+      min-width: 110px;
+      text-align: center;
+      padding: 10px 15px;
+      border-radius: 8px;
+      background: var(--success);
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .timer.warning {
+      background: var(--warning);
+      color: #222;
+    }
+
+    .timer.danger {
+      background: var(--danger);
+      color: white;
+      animation: pulse 0.8s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.05);
+      }
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .question-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 25px;
+    }
+
+    .category {
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .question {
+      font-size: 21px;
+      line-height: 1.45;
+      margin: 0 0 24px;
+    }
+
+    .answers {
+      display: grid;
+      gap: 12px;
+    }
+
+    .answer {
+      width: 100%;
+      text-align: left;
+      background: white;
+      border: 2px solid #d7dee7;
+      color: var(--dark);
+    }
+
+    .answer:hover {
+      border-color: var(--primary);
+      background: #eef7ff;
+    }
+
+    .answer.correct {
+      border-color: var(--success);
+      background: #d9f4e4;
+      color: #126333;
+    }
+
+    .answer.wrong {
+      border-color: var(--danger);
+      background: #fbe0e3;
+      color: #8c1d29;
+    }
+
+    .answer:disabled {
+      cursor: default;
+      transform: none;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .feedback.success {
+      background: #d9f4e4;
+      color: #126333;
+    }
+
+    .feedback.error {
+      background: #fbe0e3;
+      color: #8c1d29;
+    }
+
+    .result {
+      text-align: center;
+    }
+
+    .score {
+      font-size: 50px;
+      color: var(--primary);
+      font-weight: bold;
+      margin: 20px 0;
+    }
+
+    .result-message {
+      font-size: 18px;
+      margin-bottom: 25px;
+    }
+
+    .review {
+      margin-top: 25px;
+      text-align: left;
+    }
+
+    .review-item {
+      border-left: 4px solid var(--success);
+      background: #f8fafc;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .review-item.wrong-review {
+      border-left-color: var(--danger);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+      }
+
+      .content {
+        padding: 18px;
+      }
+
+      header h1 {
+        font-size: 23px;
+      }
+
+      .question {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Technik- und Mechaniktest</h1>
+      <p>Technische Zusammenhänge erkennen und mechanische Probleme lösen</p>
+    </header>
+
+    <section id="startScreen" class="content">
+      <div class="intro">
+        <p>
+          In diesem Test werden Aufgaben aus verschiedenen Bereichen der Mechanik
+          zufällig erzeugt. Jede Aufgabe hat drei Antwortmöglichkeiten.
+        </p>
+        <p>
+          Berechne beispielsweise Kräfte, Drehmomente, Übersetzungen oder
+          hydraulische Kraftübertragungen.
+        </p>
+      </div>
+
+      <div class="settings">
+        <div class="setting-box">
+          Aufgaben pro Test
+          <strong>10</strong>
+        </div>
+
+        <div class="setting-box">
+          Zeit pro Aufgabe
+          <strong>50 s</strong>
+        </div>
+
+        <div class="setting-box">
+          Antwortmöglichkeiten
+          <strong>3</strong>
+        </div>
+      </div>
+
+      <button id="startButton" class="primary-button">
+        Test starten
+      </button>
+    </section>
+
+    <section id="quizScreen" class="content hidden">
+      <div class="quiz-top">
+        <div id="progressText" class="progress-text"></div>
+        <div id="timer" class="timer">50 s</div>
+      </div>
+
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <div class="question-card">
+        <div id="category" class="category"></div>
+        <h2 id="question" class="question"></h2>
+        <div id="answers" class="answers"></div>
+        <div id="feedback" class="feedback hidden"></div>
+        <button id="nextButton" class="secondary-button hidden">
+          Nächste Aufgabe
+        </button>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="content hidden">
+      <div class="result">
+        <h2>Test abgeschlossen</h2>
+        <div id="score" class="score"></div>
+        <div id="resultMessage" class="result-message"></div>
+        <button id="restartButton" class="primary-button">
+          Neuen Test starten
+        </button>
+      </div>
+
+      <div id="review" class="review"></div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL_QUESTIONS = 10;
+    const TIME_PER_QUESTION = 50;
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLeft = TIME_PER_QUESTION;
+    let timerInterval = null;
+    let currentTask = null;
+    let results = [];
+
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const nextButton = document.getElementById("nextButton");
+
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const timerElement = document.getElementById("timer");
+
+    const categoryElement = document.getElementById("category");
+    const questionElement = document.getElementById("question");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+
+    const scoreElement = document.getElementById("score");
+    const resultMessage = document.getElementById("resultMessage");
+    const reviewElement = document.getElementById("review");
+
+    startButton.addEventListener("click", startQuiz);
+    restartButton.addEventListener("click", startQuiz);
+    nextButton.addEventListener("click", nextQuestion);
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function formatNumber(number) {
+      return Number(number.toFixed(2))
+        .toString()
+        .replace(".", ",");
+    }
+
+    function uniqueNumbers(correct, offsets) {
+      const numbers = [correct];
+
+      offsets.forEach(offset => {
+        const value = Number((correct + offset).toFixed(2));
+
+        if (value > 0 && !numbers.includes(value)) {
+          numbers.push(value);
+        }
+      });
+
+      while (numbers.length < 3) {
+        const value = Number(
+          (correct * (0.7 + Math.random() * 0.6)).toFixed(2)
+        );
+
+        if (value > 0 && !numbers.includes(value)) {
+          numbers.push(value);
+        }
+      }
+
+      return numbers.sort(() => Math.random() - 0.5);
+    }
+
+    function createNumericTask(category, question, correctValue, unit, explanation) {
+      const spread = Math.max(correctValue * 0.15, 1);
+
+      const values = uniqueNumbers(correctValue, [
+        -spread,
+        spread,
+        -spread * 2,
+        spread * 2
+      ]);
+
+      const options = values.map(value => ({
+        text: `${formatNumber(value)} ${unit}`,
+        correct: value === correctValue
+      }));
+
+      return {
+        category,
+        question,
+        options,
+        explanation
+      };
+    }
+
+    function generateLeverTask() {
+      const load = randomInt(20, 100);
+      const loadArm = randomInt(20, 80);
+      const effortArm = randomInt(40, 160);
+
+      const correct = (load * loadArm) / effortArm;
+
+      return createNumericTask(
+        "Hebelgesetz",
+        `Eine Last von ${load} N hängt an einem Hebelarm von ${loadArm} cm. ` +
+        `Der Kraftarm ist ${effortArm} cm lang. Welche Kraft ist nötig, ` +
+        `um die Last ideal auszugleichen?`,
+        correct,
+        "N",
+        `Nach dem Hebelgesetz gilt: F₁ · l₁ = F₂ · l₂. ` +
+        `Daher: ${load} · ${loadArm} / ${effortArm} = ${formatNumber(correct)} N.`
+      );
+    }
+
+    function generateTorqueTask() {
+      const force = randomInt(10, 80);
+      const arm = randomInt(10, 100) / 100;
+      const correct = force * arm;
+
+      return createNumericTask(
+        "Drehmoment",
+        `Mit einer Kraft von ${force} N wird ein Hebel mit einer Länge von ` +
+        `${formatNumber(arm)} m betätigt. Wie groß ist das Drehmoment?`,
+        correct,
+        "Nm",
+        `Das Drehmoment berechnet sich mit M = F · r. ` +
+        `${force} · ${formatNumber(arm)} = ${formatNumber(correct)} Nm.`
+      );
+    }
+
+    function generateGearTask() {
+      const driverTeeth = randomInt(12, 30);
+      const drivenTeeth = randomInt(36, 80);
+      const inputSpeed = randomInt(600, 1800);
+
+      const correct = (inputSpeed * driverTeeth) / drivenTeeth;
+
+      return createNumericTask(
+        "Zahnradübersetzung",
+        `Ein Zahnrad mit ${driverTeeth} Zähnen treibt ein Zahnrad mit ` +
+        `${drivenTeeth} Zähnen an. Das Antriebszahnrad dreht sich mit ` +
+        `${inputSpeed} U/min. Wie schnell dreht sich das Abtriebszahnrad?`,
+        correct,
+        "U/min",
+        `Es gilt n₂ = n₁ · z₁ / z₂. ` +
+        `${inputSpeed} · ${driverTeeth} / ${drivenTeeth} = ` +
+        `${formatNumber(correct)} U/min. Das größere Zahnrad dreht sich langsamer.`
+      );
+    }
+
+    function generatePulleyTask() {
+      const load = randomInt(40, 200);
+      const correct = load / 2;
+
+      return createNumericTask(
+        "Flaschenzug",
+        `Eine Last von ${load} N wird ideal mit einer losen Rolle gehoben. ` +
+        `Wie groß ist die notwendige Zugkraft ohne Reibungsverluste?`,
+        correct,
+        "N",
+        `Bei einer idealen losen Rolle wird die Last von zwei Seilabschnitten ` +
+        `getragen. ${load} / 2 = ${formatNumber(correct)} N.`
+      );
+    }
+
+    function generateHydraulicTask() {
+      const inputForce = randomInt(20, 100);
+      const inputArea = randomInt(2, 8);
+      const outputArea = randomInt(12, 40);
+
+      const correct = inputForce * outputArea / inputArea;
+
+      return createNumericTask(
+        "Hydraulik",
+        `Auf eine kleine Kolbenfläche von ${inputArea} cm² wirkt eine Kraft ` +
+        `von ${inputForce} N. Die große Kolbenfläche beträgt ${outputArea} cm². ` +
+        `Welche Kraft wirkt idealerweise auf den großen Kolben?`,
+        correct,
+        "N",
+        `Nach dem Pascalschen Gesetz gilt F₂ = F₁ · A₂ / A₁. ` +
+        `${inputForce} · ${outputArea} / ${inputArea} = ` +
+        `${formatNumber(correct)} N.`
+      );
+    }
+
+    function generateRampTask() {
+      const mass = randomInt(20, 100);
+      const height = randomInt(1, 5);
+      const length = randomInt(height + 2, height * 4 + 5);
+
+      // Vereinfachte Rechnung ohne Reibung und mit g ≈ 10 N/kg
+      const correct = (mass * 10 * height) / length;
+
+      return createNumericTask(
+        "Schiefe Ebene",
+        `Eine Masse von ${mass} kg soll ohne Reibung über eine ${length} m ` +
+        `lange Rampe auf eine Höhe von ${height} m bewegt werden. ` +
+        `Wie groß ist die theoretisch notwendige Zugkraft? ` +
+        `(g ≈ 10 N/kg)`,
+        correct,
+        "N",
+        `Für eine ideale schiefe Ebene gilt F = m · g · h / l. ` +
+        `${mass} · 10 · ${height} / ${length} = ` +
+        `${formatNumber(correct)} N.`
+      );
+    }
+
+    function generateConceptTask() {
+      const concepts = [
+        {
+          question: "Was passiert bei zwei miteinander kämmenden Zahnrädern?",
+          options: [
+            {
+              text: "Sie drehen sich in entgegengesetzte Richtungen.",
+              correct: true
+            },
+            {
+              text: "Sie drehen sich immer in dieselbe Richtung.",
+              correct: false
+            },
+            {
+              text: "Das kleinere Zahnrad bleibt grundsätzlich stehen.",
+              correct: false
+            }
+          ],
+          explanation:
+            "Bei zwei direkt kämmenden Zahnrädern ist die Drehrichtung immer entgegengesetzt."
+        },
+        {
+          question: "Welche Aufgabe hat ein Lager in einer mechanischen Konstruktion?",
+          options: [
+            {
+              text: "Es führt eine Welle und reduziert Reibung.",
+              correct: true
+            },
+            {
+              text: "Es vergrößert automatisch die Masse der Welle.",
+              correct: false
+            },
+            {
+              text: "Es verhindert grundsätzlich jede Bewegung.",
+              correct: false
+            }
+          ],
+          explanation:
+            "Lager führen bewegliche Bauteile und reduzieren die Reibung zwischen den Kontaktflächen."
+        },
+        {
+          question: "Welche Änderung erhöht bei gleicher Kraft das Drehmoment?",
+          options: [
+            {
+              text: "Ein längerer Hebelarm.",
+              correct: true
+            },
+            {
+              text: "Ein kürzerer Hebelarm.",
+              correct: false
+            },
+            {
+              text: "Eine Verringerung des Abstands zur Drehachse auf null.",
+              correct: false
+            }
+          ],
+          explanation:
+            "Das Drehmoment lautet M = F · r. Ein größerer Abstand zur Drehachse erhöht das Drehmoment."
+        }
+      ];
+
+      const selected = randomItem(concepts);
+
+      return {
+        category: "Technisches Verständnis",
+        question: selected.question,
+        options: selected.options.sort(() => Math.random() - 0.5),
+        explanation: selected.explanation
+      };
+    }
+
+    function generateTask() {
+      const generators = [
+        generateLeverTask,
+        generateTorqueTask,
+        generateGearTask,
+        generatePulleyTask,
+        generateHydraulicTask,
+        generateRampTask,
+        generateConceptTask
+      ];
+
+      return randomItem(generators)();
+    }
+
+    function startQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      results = [];
+
+      startScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      quizScreen.classList.remove("hidden");
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      clearInterval(timerInterval);
+
+      currentTask = generateTask();
+
+      progressText.textContent =
+        `Aufgabe ${currentQuestion + 1} von ${TOTAL_QUESTIONS}`;
+
+      progressFill.style.width =
+        `${((currentQuestion + 1) / TOTAL_QUESTIONS) * 100}%`;
+
+      categoryElement.textContent = currentTask.category;
+      questionElement.textContent = currentTask.question;
+
+      answersElement.innerHTML = "";
+      feedbackElement.className = "feedback hidden";
+      feedbackElement.textContent = "";
+      nextButton.classList.add("hidden");
+
+      currentTask.options.forEach((option, index) => {
+        const button = document.createElement("button");
+
+        button.className = "answer";
+        button.textContent =
+          `${String.fromCharCode(65 + index)}) ${option.text}`;
+
+        button.addEventListener("click", () => selectAnswer(index));
+
+        answersElement.appendChild(button);
+      });
+
+      timeLeft = TIME_PER_QUESTION;
+      updateTimer();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    function updateTimer() {
+      timerElement.textContent = `${timeLeft} s`;
+
+      timerElement.classList.remove("warning", "danger");
+
+      if (timeLeft <= 10) {
+        timerElement.classList.add("danger");
+      } else if (timeLeft <= 20) {
+        timerElement.classList.add("warning");
+      }
+    }
+
+    function selectAnswer(selectedIndex) {
+      clearInterval(timerInterval);
+
+      const buttons = document.querySelectorAll(".answer");
+      const selectedOption = currentTask.options[selectedIndex];
+      const correctIndex = currentTask.options.findIndex(
+        option => option.correct
+      );
+
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+
+        if (index === correctIndex) {
+          button.classList.add("correct");
+        }
+
+        if (index === selectedIndex && !selectedOption.correct) {
+          button.classList.add("wrong");
+        }
+      });
+
+      if (selectedOption.correct) {
+        score++;
+
+        feedbackElement.className = "feedback success";
+        feedbackElement.innerHTML =
+          `<strong>Richtig!</strong><br>${currentTask.explanation}`;
+
+        results.push({
+          question: currentTask.question,
+          answer: selectedOption.text,
+          correct: true,
+          explanation: currentTask.explanation
+        });
+      } else {
+        feedbackElement.className = "feedback error";
+        feedbackElement.innerHTML =
+          `<strong>Falsch.</strong><br>${currentTask.explanation}`;
+
+        results.push({
+          question: currentTask.question,
+          answer: selectedOption.text,
+          correct: false,
+          explanation: currentTask.explanation
+        });
+      }
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function handleTimeout() {
+      const buttons = document.querySelectorAll(".answer");
+      const correctIndex = currentTask.options.findIndex(
+        option => option.correct
+      );
+
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+
+        if (index === correctIndex) {
+          button.classList.add("correct");
+        }
+      });
+
+      feedbackElement.className = "feedback error";
+      feedbackElement.innerHTML =
+        `<strong>Zeit abgelaufen.</strong><br>${currentTask.explanation}`;
+
+      results.push({
+        question: currentTask.question,
+        answer: "Keine Antwort – Zeit abgelaufen",
+        correct: false,
+        explanation: currentTask.explanation
+      });
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+
+      if (currentQuestion >= TOTAL_QUESTIONS) {
+        showResults();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function showResults() {
+      clearInterval(timerInterval);
+
+      quizScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      const percentage = Math.round((score / TOTAL_QUESTIONS) * 100);
+
+      scoreElement.textContent =
+        `${score} / ${TOTAL_QUESTIONS} Punkte`;
+
+      if (percentage >= 90) {
+        resultMessage.textContent =
+          "Hervorragend! Du besitzt ein sehr gutes technisches Verständnis.";
+      } else if (percentage >= 70) {
+        resultMessage.textContent =
+          "Gute Leistung! Die technischen Zusammenhänge wurden sicher erkannt.";
+      } else if (percentage >= 50) {
+        resultMessage.textContent =
+          "Solide Grundlage. Einige mechanische Prinzipien können noch geübt werden.";
+      } else {
+        resultMessage.textContent =
+          "Die Grundlagen sollten noch einmal wiederholt und geübt werden.";
+      }
+
+      reviewElement.innerHTML = "<h3>Aufgabenübersicht</h3>";
+
+      results.forEach((result, index) => {
+        const item = document.createElement("div");
+
+        item.className =
+          `review-item ${result.correct ? "" : "wrong-review"}`;
+
+        item.innerHTML =
+          `<strong>${index + 1}. ${result.correct ? "Richtig" : "Falsch"}</strong><br>` +
+          `${result.question}<br>` +
+          `<small>Deine Antwort: ${result.answer}</small><br>` +
+          `<small>${result.explanation}</small>`;
+
+        reviewElement.appendChild(item);
+      });
+    }
+  </script>
+</body>
+</html>

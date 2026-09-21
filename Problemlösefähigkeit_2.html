@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leichte Logikaufgaben</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #eef2f7;
+      color: #172033;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      width: min(900px, 100%);
+      margin: auto;
+    }
+
+    header,
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .description {
+      line-height: 1.5;
+      color: #4d596b;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .topbar span {
+      font-weight: bold;
+    }
+
+    #timer {
+      padding: 10px 16px;
+      border-radius: 7px;
+      background: #e5edf9;
+      color: #1c4f9d;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    #timer.warning {
+      background: #f4b942;
+      color: white;
+    }
+
+    #timer.danger {
+      background: #c52c3f;
+      color: white;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .new-task {
+      border: none;
+      border-radius: 7px;
+      padding: 10px 15px;
+      background: #2457a6;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .new-task:hover {
+      background: #173d79;
+    }
+
+    .game {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      max-width: 520px;
+      margin: auto;
+    }
+
+    .cell,
+    .answer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 95px;
+      border: 2px solid #b7c2d1;
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .cell.empty {
+      border: 3px dashed #2457a6;
+      background: #edf4ff;
+      color: #2457a6;
+      font-size: 35px;
+      font-weight: bold;
+    }
+
+    .cell.empty::before {
+      content: "?";
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .answer {
+      position: relative;
+      min-height: 105px;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .answer:hover,
+    .answer:focus {
+      border-color: #2457a6;
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .answer:disabled {
+      cursor: default;
+    }
+
+    .answer-number {
+      position: absolute;
+      top: 5px;
+      left: 8px;
+      color: #667085;
+      font-weight: bold;
+      font-size: .85rem;
+    }
+
+    .answer.correct {
+      background: #ddf5e7;
+      border-color: #16834b;
+    }
+
+    .answer.wrong {
+      background: #ffe5e8;
+      border-color: #bd2638;
+    }
+
+    .tile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 62px;
+      height: 62px;
+      font-size: 44px;
+      font-family: "Segoe UI Symbol", Arial, sans-serif;
+      font-weight: bold;
+    }
+
+    #feedback {
+      min-height: 28px;
+      margin-top: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .success {
+      color: #16834b;
+    }
+
+    .error {
+      color: #bd2638;
+    }
+
+    .rule {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 7px;
+      background: #f1f4f8;
+      color: #596579;
+      line-height: 1.45;
+      font-size: .92rem;
+    }
+
+    .hint {
+      margin-top: 16px;
+      color: #667085;
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 700px) {
+      .game {
+        grid-template-columns: 1fr;
+      }
+
+      .cell {
+        min-height: 72px;
+      }
+
+      .answer {
+        min-height: 90px;
+      }
+
+      .tile {
+        font-size: 35px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <header>
+      <h1>Logisches Schlussfolgern</h1>
+
+      <p class="description">
+        Ergänzen Sie das leere Kästchen. Sehen Sie sich die einfachen Muster
+        im Raster an und wählen Sie anschließend die passende Antwort aus.
+      </p>
+
+      <div class="topbar">
+        <span>Aufgabe: <strong id="taskNumber">1</strong></span>
+        <span>Richtig: <strong id="correctCount">0</strong></span>
+        <span>Fehler: <strong id="wrongCount">0</strong></span>
+
+        <div id="timer">60 Sekunden</div>
+
+        <button class="new-task" id="newTask">
+          Neue Aufgabe
+        </button>
+      </div>
+    </header>
+
+    <div class="game">
+      <section class="panel">
+        <h2>Aufgabenraster</h2>
+
+        <div id="grid" class="grid"></div>
+
+        <div id="feedback"></div>
+
+        <div id="rule" class="rule">
+          Die Regel wird nach der Antwort angezeigt.
+        </div>
+
+        <div class="hint">
+          Tipp: Prüfen Sie zuerst, ob sich Symbole zeilenweise oder
+          spaltenweise wiederholen. Achten Sie außerdem auf einfache
+          Farb- oder Drehungswechsel.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Antwortmöglichkeiten</h2>
+        <div id="answers" class="answers"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    const SYMBOLS = ["●", "▲", "■", "◆"];
+    const COLORS = ["#2457a6", "#c62843", "#16834b", "#a35b00"];
+    const ROTATIONS = [0, 90, 180, 270];
+    const TIME_LIMIT = 60;
+
+    let puzzle;
+    let timer;
+    let seconds;
+    let taskNumber = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let locked = false;
+
+    const gridElement = document.getElementById("grid");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+    const ruleElement = document.getElementById("rule");
+    const timerElement = document.getElementById("timer");
+
+    document
+      .getElementById("newTask")
+      .addEventListener("click", newTask);
+
+    document.addEventListener("keydown", event => {
+      if (locked) return;
+
+      const number = Number(event.key);
+
+      if (number >= 1 && number <= 6) {
+        const button = document.querySelector(
+          `.answer[data-number="${number}"]`
+        );
+
+        if (button) {
+          button.click();
+        }
+      }
+    });
+
+    function random(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function choose(array) {
+      return array[random(array.length)];
+    }
+
+    function shuffle(array) {
+      const result = [...array];
+
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = random(i + 1);
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+
+      return result;
+    }
+
+    function tile(symbol, color, rotation = 0) {
+      return {
+        symbol,
+        color,
+        rotation
+      };
+    }
+
+    function tileKey(item) {
+      return `${item.symbol}|${item.color}|${item.rotation}`;
+    }
+
+    function sameTile(a, b) {
+      return tileKey(a) === tileKey(b);
+    }
+
+    /*
+      Es gibt fünf einfache Regelvarianten.
+    */
+    function createPuzzle() {
+      const type = random(5);
+      const matrix = [];
+      let explanation = "";
+
+      const firstSymbol = random(SYMBOLS.length);
+      const secondSymbol = (firstSymbol + 1) % SYMBOLS.length;
+
+      const firstColor = random(COLORS.length);
+      const secondColor = (firstColor + 1) % COLORS.length;
+
+      for (let row = 0; row < 4; row++) {
+        for (let column = 0; column < 4; column++) {
+          let symbol;
+          let color;
+          let rotation;
+
+          if (type === 0) {
+            /*
+              Schachbrettmuster:
+              Das Symbol wechselt nach rechts und unten.
+            */
+            const even = (row + column) % 2 === 0;
+
+            symbol = SYMBOLS[even ? firstSymbol : secondSymbol];
+            color = COLORS[firstColor];
+            rotation = 0;
+
+            explanation =
+              "Das Symbol wechselt wie bei einem Schachbrett ab.";
+          }
+
+          if (type === 1) {
+            /*
+              Jede Zeile hat ein eigenes Symbol.
+            */
+            symbol = SYMBOLS[(firstSymbol + row) % SYMBOLS.length];
+            color = COLORS[firstColor];
+            rotation = 0;
+
+            explanation =
+              "In jeder Zeile bleibt das Symbol gleich. " +
+              "Von Zeile zu Zeile ändert es sich.";
+          }
+
+          if (type === 2) {
+            /*
+              Jede Spalte hat ein eigenes Symbol.
+            */
+            symbol = SYMBOLS[(firstSymbol + column) % SYMBOLS.length];
+            color = COLORS[firstColor];
+            rotation = 0;
+
+            explanation =
+              "In jeder Spalte bleibt das Symbol gleich. " +
+              "Von Spalte zu Spalte ändert es sich.";
+          }
+
+          if (type === 3) {
+            /*
+              Die Farben wechseln zeilenweise.
+            */
+            symbol = SYMBOLS[firstSymbol];
+            color = COLORS[(firstColor + row) % COLORS.length];
+            rotation = 0;
+
+            explanation =
+              "Das Symbol bleibt gleich. Die Farbe ändert sich in jeder Zeile.";
+          }
+
+          if (type === 4) {
+            /*
+              Die Drehung nimmt von Spalte zu Spalte zu.
+            */
+            symbol = SYMBOLS[firstSymbol];
+            color = COLORS[firstColor];
+            rotation = ROTATIONS[column];
+
+            explanation =
+              "Das Symbol bleibt gleich. Es wird von Spalte zu Spalte weitergedreht.";
+          }
+
+          matrix.push(tile(symbol, color, rotation));
+        }
+      }
+
+      const emptyIndex = random(16);
+      const correctTile = matrix[emptyIndex];
+
+      const answers = [correctTile];
+      const used = new Set([tileKey(correctTile)]);
+
+      /*
+        Leichte Antwortmöglichkeiten:
+        Jede falsche Antwort unterscheidet sich nur in einer Eigenschaft.
+      */
+      while (answers.length < 6) {
+        const wrongTile = {
+          symbol: correctTile.symbol,
+          color: correctTile.color,
+          rotation: correctTile.rotation
+        };
+
+        const changedProperty = random(3);
+
+        if (changedProperty === 0) {
+          do {
+            wrongTile.symbol = choose(SYMBOLS);
+          } while (wrongTile.symbol === correctTile.symbol);
+        }
+
+        if (changedProperty === 1) {
+          do {
+            wrongTile.color = choose(COLORS);
+          } while (wrongTile.color === correctTile.color);
+        }
+
+        if (changedProperty === 2) {
+          do {
+            wrongTile.rotation = choose(ROTATIONS);
+          } while (wrongTile.rotation === correctTile.rotation);
+        }
+
+        if (!used.has(tileKey(wrongTile))) {
+          used.add(tileKey(wrongTile));
+          answers.push(wrongTile);
+        }
+      }
+
+      const shuffledAnswers = shuffle(answers);
+
+      return {
+        matrix,
+        emptyIndex,
+        correctTile,
+        answers: shuffledAnswers,
+        correctIndex: shuffledAnswers.findIndex(item =>
+          sameTile(item, correctTile)
+        ),
+        explanation
+      };
+    }
+
+    function createTileElement(item) {
+      const element = document.createElement("div");
+      element.className = "tile";
+      element.textContent = item.symbol;
+      element.style.color = item.color;
+      element.style.transform = `rotate(${item.rotation}deg)`;
+      return element;
+    }
+
+    function renderGrid() {
+      gridElement.innerHTML = "";
+
+      puzzle.matrix.forEach((item, index) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        if (index === puzzle.emptyIndex) {
+          cell.classList.add("empty");
+          cell.setAttribute("aria-label", "Leeres Kästchen");
+        } else {
+          cell.appendChild(createTileElement(item));
+        }
+
+        gridElement.appendChild(cell);
+      });
+    }
+
+    function renderAnswers() {
+      answersElement.innerHTML = "";
+
+      puzzle.answers.forEach((item, index) => {
+        const button = document.createElement("button");
+
+        button.className = "answer";
+        button.type = "button";
+        button.dataset.number = index + 1;
+        button.setAttribute(
+          "aria-label",
+          `Antwortmöglichkeit ${index + 1}`
+        );
+
+        const number = document.createElement("span");
+        number.className = "answer-number";
+        number.textContent = index + 1;
+
+        button.appendChild(number);
+        button.appendChild(createTileElement(item));
+
+        button.addEventListener("click", () => {
+          checkAnswer(index);
+        });
+
+        answersElement.appendChild(button);
+      });
+    }
+
+    function updateStatistics() {
+      document.getElementById("taskNumber").textContent = taskNumber;
+      document.getElementById("correctCount").textContent = correctCount;
+      document.getElementById("wrongCount").textContent = wrongCount;
+    }
+
+    function updateTimer() {
+      timerElement.textContent = `${seconds} Sekunden`;
+
+      timerElement.classList.remove("warning", "danger");
+
+      if (seconds <= 10) {
+        timerElement.classList.add("danger");
+      } else if (seconds <= 20) {
+        timerElement.classList.add("warning");
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+
+      seconds = TIME_LIMIT;
+      updateTimer();
+
+      timer = setInterval(() => {
+        seconds--;
+        updateTimer();
+
+        if (seconds <= 0) {
+          clearInterval(timer);
+          timeExpired();
+        }
+      }, 1000);
+    }
+
+    function disableAnswers() {
+      document.querySelectorAll(".answer").forEach(button => {
+        button.disabled = true;
+      });
+    }
+
+    function markCorrectAnswer() {
+      const buttons = document.querySelectorAll(".answer");
+
+      buttons.forEach((button, index) => {
+        if (index === puzzle.correctIndex) {
+          button.classList.add("correct");
+        }
+      });
+    }
+
+    function checkAnswer(index) {
+      if (locked) return;
+
+      locked = true;
+      clearInterval(timer);
+      disableAnswers();
+
+      const buttons = document.querySelectorAll(".answer");
+
+      if (index === puzzle.correctIndex) {
+        correctCount++;
+        buttons[index].classList.add("correct");
+
+        feedbackElement.textContent = "Richtig!";
+        feedbackElement.className = "success";
+      } else {
+        wrongCount++;
+        buttons[index].classList.add("wrong");
+        markCorrectAnswer();
+
+        feedbackElement.textContent =
+          "Leider falsch. Die richtige Antwort ist grün markiert.";
+        feedbackElement.className = "error";
+      }
+
+      ruleElement.textContent = "Regel: " + puzzle.explanation;
+      updateStatistics();
+
+      setTimeout(newTask, 2200);
+    }
+
+    function timeExpired() {
+      if (locked) return;
+
+      locked = true;
+      wrongCount++;
+
+      disableAnswers();
+      markCorrectAnswer();
+
+      feedbackElement.textContent =
+        "Die Zeit ist abgelaufen. Die richtige Antwort ist grün markiert.";
+      feedbackElement.className = "error";
+
+      ruleElement.textContent = "Regel: " + puzzle.explanation;
+      updateStatistics();
+
+      setTimeout(newTask, 2200);
+    }
+
+    function newTask() {
+      clearInterval(timer);
+
+      taskNumber++;
+      locked = false;
+      puzzle = createPuzzle();
+
+      feedbackElement.textContent = "";
+      feedbackElement.className = "";
+
+      ruleElement.textContent =
+        "Die Regel wird nach der Antwort angezeigt.";
+
+      renderGrid();
+      renderAnswers();
+      updateStatistics();
+      startTimer();
+    }
+
+    newTask();
+  </script>
+</body>
+</html>

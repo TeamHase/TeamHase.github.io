@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matrizentest</title>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --background: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+      width: min(900px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.10);
+    }
+
+    h1,
+    h2 {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    .intro {
+      text-align: center;
+    }
+
+    .intro p {
+      color: var(--muted);
+      max-width: 650px;
+      margin: 0 auto 24px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+      transform: none;
+    }
+
+    .primary-button {
+      color: white;
+      background: var(--primary);
+    }
+
+    .primary-button:hover {
+      background: var(--primary-dark);
+    }
+
+    .secondary-button {
+      color: var(--text);
+      background: #e2e8f0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .progress-text {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .timer {
+      min-width: 90px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: white;
+      background: var(--primary);
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .timer.warning {
+      background: var(--warning);
+    }
+
+    .timer.danger {
+      background: var(--danger);
+    }
+
+    .progress-bar {
+      height: 8px;
+      margin-bottom: 26px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8f0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--primary);
+      transition: width 1s linear;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: min(420px, 100%);
+      margin: 24px auto 30px;
+    }
+
+    .matrix-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      font-size: clamp(1.7rem, 6vw, 3rem);
+      font-weight: 700;
+    }
+
+    .matrix-cell.missing {
+      color: var(--primary);
+      border-style: dashed;
+      border-color: var(--primary);
+      background: #eff6ff;
+      font-size: 2rem;
+    }
+
+    .options-title {
+      margin-bottom: 12px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .option {
+      min-height: 78px;
+      border: 2px solid var(--border);
+      background: white;
+      color: var(--text);
+      font-size: 1.7rem;
+    }
+
+    .option:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .option.correct {
+      border-color: var(--success);
+      background: #dcfce7;
+    }
+
+    .option.incorrect {
+      border-color: var(--danger);
+      background: #fee2e2;
+    }
+
+    .feedback {
+      min-height: 50px;
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      line-height: 1.5;
+    }
+
+    .feedback.success {
+      color: #166534;
+      background: #dcfce7;
+    }
+
+    .feedback.error {
+      color: #991b1b;
+      background: #fee2e2;
+    }
+
+    .feedback.timeout {
+      color: #92400e;
+      background: #fef3c7;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+
+    .result {
+      text-align: center;
+    }
+
+    .score {
+      margin: 24px 0;
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .result-message {
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .result-list {
+      margin: 24px 0;
+      padding: 0;
+      list-style: none;
+      text-align: left;
+    }
+
+    .result-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .correct-result {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .wrong-result {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: min(100% - 20px, 900px);
+        padding: 10px 0;
+      }
+
+      .card {
+        padding: 20px 14px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .options {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .option {
+        min-height: 68px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <section id="startScreen" class="card intro">
+      <h1>Matrizentest</h1>
+
+      <p>
+        Ergänze bei jeder Aufgabe das fehlende Element. Pro Aufgabe stehen dir
+        30 Sekunden zur Verfügung. Der Test besteht aus insgesamt 10 Aufgaben.
+      </p>
+
+      <button id="startButton" class="primary-button">
+        Test starten
+      </button>
+    </section>
+
+    <section id="testScreen" class="card hidden">
+      <div class="topbar">
+        <div id="progressText" class="progress-text">
+          Aufgabe 1 von 10
+        </div>
+
+        <div id="timer" class="timer">
+          30 s
+        </div>
+      </div>
+
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <h2>Welches Element fehlt?</h2>
+
+      <div id="matrix" class="matrix"></div>
+
+      <div class="options-title">
+        Wähle die passende Antwort:
+      </div>
+
+      <div id="options" class="options"></div>
+
+      <div id="feedback" class="feedback hidden"></div>
+
+      <div class="actions">
+        <button id="nextButton" class="primary-button hidden">
+          Nächste Aufgabe
+        </button>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="card result hidden">
+      <h1>Testergebnis</h1>
+
+      <div id="score" class="score">0 / 10</div>
+
+      <p id="resultMessage" class="result-message"></p>
+
+      <ul id="resultList" class="result-list"></ul>
+
+      <button id="restartButton" class="primary-button">
+        Test wiederholen
+      </button>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        cells: ["●", "▲", "■", "▲", "■", "◆", "■", "◆", null],
+        options: ["●", "▲", "◆", "■"],
+        answer: "●",
+        explanation: "Jede Zeile beginnt mit dem zweiten Symbol der vorherigen Zeile."
+      },
+      {
+        cells: ["1", "2", "3", "2", "3", "4", "3", "4", null],
+        options: ["4", "5", "6", "7"],
+        answer: "5",
+        explanation: "Die Zahlen steigen innerhalb jeder Zeile um 1. Die dritte Zeile lautet daher 3, 4, 5."
+      },
+      {
+        cells: ["◆", "◆", "▲", "◆", "▲", "▲", "▲", "▲", null],
+        options: ["◆", "▲", "●", "■"],
+        answer: "▲",
+        explanation: "In jeder neuen Zeile wird ein weiteres Dreieck ergänzt."
+      },
+      {
+        cells: ["A", "C", "E", "C", "E", "G", "E", "G", null],
+        options: ["H", "I", "J", "K"],
+        answer: "I",
+        explanation: "Die Buchstaben steigen jeweils in Zweierschritten: A, C, E, G, I."
+      },
+      {
+        cells: ["●", "○", "●", "○", "●", "○", "●", "○", null],
+        options: ["●", "○", "▲", "■"],
+        answer: "●",
+        explanation: "Die gefüllten und ungefüllten Kreise wechseln sich ab."
+      },
+      {
+        cells: ["▲", "■", "●", "■", "●", "▲", "●", "▲", null],
+        options: ["▲", "■", "●", "◆"],
+        answer: "■",
+        explanation: "Jede Zeile ist eine Verschiebung der vorherigen Reihenfolge."
+      },
+      {
+        cells: ["1", "4", "7", "2", "5", "8", "3", "6", null],
+        options: ["7", "8", "9", "10"],
+        answer: "9",
+        explanation: "Die Spalten erhöhen sich jeweils um 1: 1–2–3, 4–5–6 und 7–8–9."
+      },
+      {
+        cells: ["◆", "▲", "●", "●", "◆", "▲", "▲", "●", null],
+        options: ["◆", "▲", "●", "■"],
+        answer: "◆",
+        explanation: "Die Reihenfolge ◆, ▲, ● wird in jeder Zeile weiter verschoben."
+      },
+      {
+        cells: ["A", "B", "C", "B", "C", "D", "C", "D", null],
+        options: ["D", "E", "F", "G"],
+        answer: "E",
+        explanation: "Jede Zeile beginnt mit dem nächsten Buchstaben der vorherigen Zeile."
+      },
+      {
+        cells: ["■", "■■", "■■■", "■■", "■■■", "■■■■", "■■■", "■■■■", null],
+        options: ["■■", "■■■", "■■■■", "■■■■■"],
+        answer: "■■■■■",
+        explanation: "Die Anzahl der Quadrate steigt pro Zeile und Spalte jeweils um eins."
+      }
+    ];
+
+    const QUESTION_TIME = 30;
+
+    let currentQuestion = 0;
+    let score = 0;
+    let remainingTime = QUESTION_TIME;
+    let timerInterval = null;
+    let answered = false;
+    let results = [];
+
+    const startScreen = document.getElementById("startScreen");
+    const testScreen = document.getElementById("testScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const nextButton = document.getElementById("nextButton");
+
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const timerElement = document.getElementById("timer");
+
+    const matrixElement = document.getElementById("matrix");
+    const optionsElement = document.getElementById("options");
+    const feedbackElement = document.getElementById("feedback");
+
+    const scoreElement = document.getElementById("score");
+    const resultMessage = document.getElementById("resultMessage");
+    const resultList = document.getElementById("resultList");
+
+    startButton.addEventListener("click", startTest);
+    restartButton.addEventListener("click", startTest);
+    nextButton.addEventListener("click", nextQuestion);
+
+    function startTest() {
+      currentQuestion = 0;
+      score = 0;
+      results = [];
+
+      startScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      testScreen.classList.remove("hidden");
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      clearInterval(timerInterval);
+
+      answered = false;
+      remainingTime = QUESTION_TIME;
+
+      const question = questions[currentQuestion];
+
+      progressText.textContent =
+        `Aufgabe ${currentQuestion + 1} von ${questions.length}`;
+
+      progressFill.style.width = "100%";
+
+      timerElement.textContent = `${remainingTime} s`;
+      timerElement.className = "timer";
+
+      feedbackElement.className = "feedback hidden";
+      feedbackElement.textContent = "";
+
+      nextButton.classList.add("hidden");
+
+      renderMatrix(question);
+      renderOptions(question);
+
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function renderMatrix(question) {
+      matrixElement.innerHTML = "";
+
+      question.cells.forEach(cell => {
+        const cellElement = document.createElement("div");
+        cellElement.className = "matrix-cell";
+
+        if (cell === null) {
+          cellElement.classList.add("missing");
+          cellElement.textContent = "?";
+        } else {
+          cellElement.textContent = cell;
+        }
+
+        matrixElement.appendChild(cellElement);
+      });
+    }
+
+    function renderOptions(question) {
+      optionsElement.innerHTML = "";
+
+      question.options.forEach(option => {
+        const optionButton = document.createElement("button");
+
+        optionButton.className = "option";
+        optionButton.textContent = option;
+        optionButton.dataset.value = option;
+
+        optionButton.addEventListener("click", () => {
+          selectAnswer(option, optionButton);
+        });
+
+        optionsElement.appendChild(optionButton);
+      });
+    }
+
+    function updateTimer() {
+      remainingTime--;
+
+      timerElement.textContent = `${remainingTime} s`;
+      progressFill.style.width =
+        `${(remainingTime / QUESTION_TIME) * 100}%`;
+
+      if (remainingTime <= 10) {
+        timerElement.classList.add("warning");
+      }
+
+      if (remainingTime <= 5) {
+        timerElement.classList.remove("warning");
+        timerElement.classList.add("danger");
+      }
+
+      if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+        handleTimeout();
+      }
+    }
+
+    function selectAnswer(selectedAnswer, selectedButton) {
+      if (answered) return;
+
+      answered = true;
+      clearInterval(timerInterval);
+
+      const question = questions[currentQuestion];
+      const isCorrect = selectedAnswer === question.answer;
+
+      if (isCorrect) {
+        score++;
+        selectedButton.classList.add("correct");
+        showFeedback(
+          "Richtig! " + question.explanation,
+          "success"
+        );
+      } else {
+        selectedButton.classList.add("incorrect");
+        showCorrectAnswer(question);
+        showFeedback(
+          "Leider falsch. " + question.explanation,
+          "error"
+        );
+      }
+
+      saveResult(isCorrect, selectedAnswer);
+      disableOptions();
+      nextButton.classList.remove("hidden");
+    }
+
+    function handleTimeout() {
+      if (answered) return;
+
+      answered = true;
+
+      const question = questions[currentQuestion];
+
+      showCorrectAnswer(question);
+      showFeedback(
+        `Die Zeit ist abgelaufen. ${question.explanation}`,
+        "timeout"
+      );
+
+      saveResult(false, "Keine Antwort");
+      disableOptions();
+      nextButton.classList.remove("hidden");
+    }
+
+    function showCorrectAnswer(question) {
+      const optionButtons = document.querySelectorAll(".option");
+
+      optionButtons.forEach(button => {
+        if (button.dataset.value === question.answer) {
+          button.classList.add("correct");
+        }
+      });
+    }
+
+    function disableOptions() {
+      const optionButtons = document.querySelectorAll(".option");
+
+      optionButtons.forEach(button => {
+        button.disabled = true;
+      });
+    }
+
+    function showFeedback(message, type) {
+      feedbackElement.textContent = message;
+      feedbackElement.className = `feedback ${type}`;
+    }
+
+    function saveResult(isCorrect, selectedAnswer) {
+      results.push({
+        question: currentQuestion + 1,
+        correct: isCorrect,
+        selected: selectedAnswer,
+        solution: questions[currentQuestion].answer
+      });
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+
+      if (currentQuestion >= questions.length) {
+        showResults();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function showResults() {
+      clearInterval(timerInterval);
+
+      testScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      scoreElement.textContent = `${score} / ${questions.length}`;
+
+      if (score >= 9) {
+        resultMessage.textContent =
+          "Hervorragendes Ergebnis – du erkennst die Muster sehr sicher.";
+      } else if (score >= 7) {
+        resultMessage.textContent =
+          "Gutes Ergebnis – deine Fähigkeiten im logischen Denken sind solide.";
+      } else if (score >= 5) {
+        resultMessage.textContent =
+          "Ordentliches Ergebnis – mit etwas Übung kannst du dich weiter verbessern.";
+      } else {
+        resultMessage.textContent =
+          "Übung macht den Meister. Analysiere die Muster in Ruhe und versuche es erneut.";
+      }
+
+      resultList.innerHTML = "";
+
+      results.forEach(result => {
+        const listItem = document.createElement("li");
+
+        const questionLabel = document.createElement("span");
+        questionLabel.textContent = `Aufgabe ${result.question}`;
+
+        const resultLabel = document.createElement("span");
+        resultLabel.textContent = result.correct
+          ? "Richtig"
+          : `Falsch – Lösung: ${result.solution}`;
+
+        resultLabel.className = result.correct
+          ? "correct-result"
+          : "wrong-result";
+
+        listItem.appendChild(questionLabel);
+        listItem.appendChild(resultLabel);
+        resultList.appendChild(listItem);
+      });
+    }
+  </script>
+</body>
+</html>

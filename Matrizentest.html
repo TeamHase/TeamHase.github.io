@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrizen-Logiktest</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #edf1f6;
+      color: #1c2738;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+      width: min(1050px, 96vw);
+      margin: auto;
+      padding: 25px 0 45px;
+    }
+
+    .header,
+    .panel {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(20, 35, 60, .09);
+    }
+
+    .header {
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+
+    .intro {
+      max-width: 850px;
+      margin: 0;
+      line-height: 1.55;
+      color: #566276;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .stat {
+      color: #596579;
+    }
+
+    .stat strong {
+      color: #1c2738;
+    }
+
+    #timer {
+      min-width: 108px;
+      padding: 10px 15px;
+      border-radius: 7px;
+      background: #e8effb;
+      color: #20539c;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #timer.warning {
+      background: #e3a329;
+      color: white;
+    }
+
+    #timer.danger {
+      background: #c62f42;
+      color: white;
+    }
+
+    .new-task {
+      border: 0;
+      border-radius: 7px;
+      padding: 10px 16px;
+      background: #2457a6;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .new-task:hover {
+      background: #183d78;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(350px, 1fr) 330px;
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      width: min(100%, 570px);
+      margin: auto;
+    }
+
+    .matrix-cell,
+    .answer {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 110px;
+      border: 2px solid #aebaca;
+      border-radius: 7px;
+      background: #fcfdff;
+    }
+
+    .matrix-cell.empty {
+      border: 3px dashed #2457a6;
+      background: #eef5ff;
+    }
+
+    .matrix-cell.empty::after {
+      content: "?";
+      color: #2457a6;
+      font-size: 36px;
+      font-weight: bold;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .answer {
+      min-height: 120px;
+      cursor: pointer;
+      transition: transform .12s, border-color .12s, box-shadow .12s;
+    }
+
+    .answer:hover,
+    .answer:focus-visible {
+      transform: translateY(-2px);
+      border-color: #2457a6;
+      box-shadow: 0 4px 12px rgba(36, 87, 166, .2);
+      outline: none;
+    }
+
+    .answer:disabled {
+      cursor: default;
+    }
+
+    .answer-number {
+      position: absolute;
+      top: 5px;
+      left: 8px;
+      color: #687488;
+      font-size: .85rem;
+      font-weight: bold;
+    }
+
+    .answer.correct {
+      background: #e2f6e9;
+      border-color: #16834b;
+    }
+
+    .answer.wrong {
+      background: #ffe6e9;
+      border-color: #bd2638;
+    }
+
+    .figure {
+      width: 75px;
+      height: 75px;
+    }
+
+    #feedback {
+      min-height: 26px;
+      margin-top: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .success {
+      color: #16834b;
+    }
+
+    .error {
+      color: #bd2638;
+    }
+
+    .rule {
+      min-height: 25px;
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 7px;
+      background: #f1f4f8;
+      color: #596579;
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    .hint {
+      margin-top: 15px;
+      color: #6a7587;
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .matrix-cell {
+        min-height: 75px;
+      }
+
+      .answer {
+        min-height: 100px;
+      }
+
+      .figure {
+        width: 58px;
+        height: 58px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+
+    <header class="header">
+      <h1>Matrizen-Logiktest</h1>
+
+      <p class="intro">
+        In jedem Raster fehlt eine Figur. Erkennen Sie die Regel, nach der die
+        Figuren angeordnet sind, und wählen Sie die passende Antwort aus.
+      </p>
+
+      <div class="toolbar">
+        <span class="stat">
+          Aufgabe: <strong id="taskNumber">1</strong>
+        </span>
+
+        <span class="stat">
+          Richtig: <strong id="correctCount">0</strong>
+        </span>
+
+        <span class="stat">
+          Fehler: <strong id="wrongCount">0</strong>
+        </span>
+
+        <div id="timer">60 Sekunden</div>
+
+        <button class="new-task" id="newTask">
+          Neue Aufgabe
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+
+      <section class="panel">
+        <h2>Aufgabenraster</h2>
+
+        <div id="matrix" class="matrix"></div>
+
+        <div id="feedback"></div>
+
+        <div id="rule" class="rule">
+          Die Regel wird nach der Beantwortung angezeigt.
+        </div>
+
+        <div class="hint">
+          Achten Sie auf die Anzahl der Formen, deren Ausrichtung,
+          ihre Füllung und die Reihen- oder Spaltenfolge.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Antwortmöglichkeiten</h2>
+
+        <div id="answers" class="answers"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const TIME_LIMIT = 60;
+
+    const COLORS = [
+      "#2457a6",
+      "#bd2638",
+      "#16834b",
+      "#aa6400",
+      "#7035a8"
+    ];
+
+    const SHAPES = [
+      "circle",
+      "square",
+      "triangle",
+      "diamond"
+    ];
+
+    const FILLS = [
+      "empty",
+      "solid",
+      "striped"
+    ];
+
+    const ROTATIONS = [0, 90, 180, 270];
+
+    let puzzle;
+    let timer;
+    let seconds;
+    let locked = false;
+
+    let taskNumber = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    const matrixElement = document.getElementById("matrix");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+    const ruleElement = document.getElementById("rule");
+    const timerElement = document.getElementById("timer");
+
+    document
+      .getElementById("newTask")
+      .addEventListener("click", newTask);
+
+    document.addEventListener("keydown", event => {
+      if (locked) return;
+
+      const number = Number(event.key);
+
+      if (number >= 1 && number <= 6) {
+        const button = document.querySelector(
+          `.answer[data-number="${number}"]`
+        );
+
+        if (button) {
+          button.click();
+        }
+      }
+    });
+
+    function random(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function choose(array) {
+      return array[random(array.length)];
+    }
+
+    function mod(value, max) {
+      return ((value % max) + max) % max;
+    }
+
+    function shuffle(array) {
+      const result = [...array];
+
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = random(i + 1);
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+
+      return result;
+    }
+
+    function createTile(shape, color, fill, rotation, count) {
+      return {
+        shape,
+        color,
+        fill,
+        rotation,
+        count
+      };
+    }
+
+    function tileKey(tile) {
+      return [
+        tile.shape,
+        tile.color,
+        tile.fill,
+        tile.rotation,
+        tile.count
+      ].join("|");
+    }
+
+    function equalTiles(a, b) {
+      return tileKey(a) === tileKey(b);
+    }
+
+    /*
+      Erzeugt eine SVG-Grafik für eine Figur.
+      Die Figur kann aus einem, zwei oder drei gleichen Elementen bestehen.
+    */
+    function createFigure(tile) {
+      const svg = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "svg"
+      );
+
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("class", "figure");
+      svg.setAttribute("aria-label", "Grafische Antwortfigur");
+
+      const group = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
+
+      group.setAttribute(
+        "transform",
+        `rotate(${tile.rotation} 50 50)`
+      );
+
+      let positions;
+
+      if (tile.count === 1) {
+        positions = [[50, 50]];
+      } else if (tile.count === 2) {
+        positions = [[35, 50], [65, 50]];
+      } else {
+        positions = [[30, 54], [50, 35], [70, 54]];
+      }
+
+      positions.forEach(([x, y]) => {
+        let shape;
+
+        if (tile.shape === "circle") {
+          shape = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "circle"
+          );
+
+          shape.setAttribute("cx", x);
+          shape.setAttribute("cy", y);
+          shape.setAttribute("r", 13);
+        }
+
+        if (tile.shape === "square") {
+          shape = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect"
+          );
+
+          shape.setAttribute("x", x - 13);
+          shape.setAttribute("y", y - 13);
+          shape.setAttribute("width", 26);
+          shape.setAttribute("height", 26);
+        }
+
+        if (tile.shape === "triangle") {
+          shape = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "polygon"
+          );
+
+          shape.setAttribute(
+            "points",
+            `${x},${y - 15} ${x - 15},${y + 13} ${x + 15},${y + 13}`
+          );
+        }
+
+        if (tile.shape === "diamond") {
+          shape = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "polygon"
+          );
+
+          shape.setAttribute(
+            "points",
+            `${x},${y - 17} ${x + 17},${y} ${x},${y + 17} ${x - 17},${y}`
+          );
+        }
+
+        shape.setAttribute("stroke", tile.color);
+        shape.setAttribute("stroke-width", "3");
+
+        if (tile.fill === "solid") {
+          shape.setAttribute("fill", tile.color);
+        } else if (tile.fill === "striped") {
+          shape.setAttribute("fill", tile.color);
+          shape.setAttribute("fill-opacity", ".3");
+        } else {
+          shape.setAttribute("fill", "white");
+        }
+
+        group.appendChild(shape);
+      });
+
+      svg.appendChild(group);
+
+      return svg;
+    }
+
+    /*
+      Die Aufgaben verwenden einfache Regeln.
+      Jede Eigenschaft folgt einer eigenen, regelmäßigen Reihenfolge.
+    */
+    function generatePuzzle() {
+      const ruleType = random(5);
+      const matrix = [];
+      let explanation;
+
+      const baseShape = random(SHAPES.length);
+      const baseColor = random(COLORS.length);
+      const baseFill = random(FILLS.length);
+      const baseRotation = random(ROTATIONS.length);
+      const baseCount = 1 + random(3);
+
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          let shape;
+          let color;
+          let fill;
+          let rotation;
+          let count;
+
+          if (ruleType === 0) {
+            /*
+              Form verändert sich nach rechts,
+              Anzahl nach unten.
+            */
+            shape = SHAPES[mod(baseShape + col, SHAPES.length)];
+            color = COLORS[baseColor];
+            fill = FILLS[baseFill];
+            rotation = ROTATIONS[baseRotation];
+            count = 1 + mod(baseCount - 1 + row, 3);
+
+            explanation =
+              "Die Form ändert sich von Spalte zu Spalte. " +
+              "Die Anzahl steigt von Zeile zu Zeile.";
+          }
+
+          if (ruleType === 1) {
+            /*
+              Jede Zeile enthält dieselbe Form,
+              jede Spalte eine andere Füllung.
+            */
+            shape = SHAPES[mod(baseShape + row, SHAPES.length)];
+            color = COLORS[baseColor];
+            fill = FILLS[mod(baseFill + col, FILLS.length)];
+            rotation = ROTATIONS[baseRotation];
+            count = baseCount;
+
+            explanation =
+              "Die Form ändert sich zeilenweise. " +
+              "Die Füllung ändert sich spaltenweise.";
+          }
+
+          if (ruleType === 2) {
+            /*
+              Einfache Schachbrettfolge.
+            */
+            const even = (row + col) % 2 === 0;
+
+            shape = SHAPES[
+              mod(baseShape + (even ? 0 : 1), SHAPES.length)
+            ];
+
+            color = COLORS[
+              mod(baseColor + (even ? 0 : 1), COLORS.length)
+            ];
+
+            fill = FILLS[baseFill];
+            rotation = ROTATIONS[baseRotation];
+            count = baseCount;
+
+            explanation =
+              "Die Figuren bilden ein abwechselndes Schachbrettmuster.";
+          }
+
+          if (ruleType === 3) {
+            /*
+              Drehung nimmt nach rechts zu,
+              Farbe ändert sich nach unten.
+            */
+            shape = SHAPES[baseShape];
+            color = COLORS[mod(baseColor + row, COLORS.length)];
+            fill = FILLS[baseFill];
+            rotation = ROTATIONS[mod(baseRotation + col, 4)];
+            count = baseCount;
+
+            explanation =
+              "Die Farbe ändert sich von Zeile zu Zeile. " +
+              "Die Drehung nimmt von Spalte zu Spalte zu.";
+          }
+
+          if (ruleType === 4) {
+            /*
+              Form und Anzahl ändern sich gemeinsam.
+            */
+            shape = SHAPES[
+              mod(baseShape + row + col, SHAPES.length)
+            ];
+
+            color = COLORS[baseColor];
+            fill = FILLS[baseFill];
+            rotation = ROTATIONS[mod(baseRotation + row, 4)];
+            count = 1 + mod(baseCount - 1 + col, 3);
+
+            explanation =
+              "Form, Drehung und Anzahl folgen einfachen regelmäßigen Reihen.";
+          }
+
+          matrix.push(
+            createTile(shape, color, fill, rotation, count)
+          );
+        }
+      }
+
+      const emptyIndex = random(16);
+      const correctTile = matrix[emptyIndex];
+
+      const answers = [correctTile];
+      const used = new Set([tileKey(correctTile)]);
+
+      /*
+        Die falschen Antworten sind bewusst ähnlich,
+        unterscheiden sich aber jeweils in nur einer Eigenschaft.
+      */
+      while (answers.length < 6) {
+        const wrongTile = { ...correctTile };
+        const property = random(5);
+
+        if (property === 0) {
+          do {
+            wrongTile.shape = choose(SHAPES);
+          } while (wrongTile.shape === correctTile.shape);
+        }
+
+        if (property === 1) {
+          do {
+            wrongTile.color = choose(COLORS);
+          } while (wrongTile.color === correctTile.color);
+        }
+
+        if (property === 2) {
+          do {
+            wrongTile.fill = choose(FILLS);
+          } while (wrongTile.fill === correctTile.fill);
+        }
+
+        if (property === 3) {
+          do {
+            wrongTile.rotation = choose(ROTATIONS);
+          } while (wrongTile.rotation === correctTile.rotation);
+        }
+
+        if (property === 4) {
+          do {
+            wrongTile.count = 1 + random(3);
+          } while (wrongTile.count === correctTile.count);
+        }
+
+        if (!used.has(tileKey(wrongTile))) {
+          used.add(tileKey(wrongTile));
+          answers.push(wrongTile);
+        }
+      }
+
+      const shuffledAnswers = shuffle(answers);
+
+      return {
+        matrix,
+        emptyIndex,
+        answers: shuffledAnswers,
+        correctIndex: shuffledAnswers.findIndex(answer =>
+          equalTiles(answer, correctTile)
+        ),
+        explanation
+      };
+    }
+
+    function renderMatrix() {
+      matrixElement.innerHTML = "";
+
+      puzzle.matrix.forEach((tile, index) => {
+        const cell = document.createElement("div");
+        cell.className = "matrix-cell";
+
+        if (index === puzzle.emptyIndex) {
+          cell.classList.add("empty");
+        } else {
+          cell.appendChild(createFigure(tile));
+        }
+
+        matrixElement.appendChild(cell);
+      });
+    }
+
+    function renderAnswers() {
+      answersElement.innerHTML = "";
+
+      puzzle.answers.forEach((tile, index) => {
+        const button = document.createElement("button");
+
+        button.className = "answer";
+        button.type = "button";
+        button.dataset.number = index + 1;
+        button.setAttribute(
+          "aria-label",
+          `Antwortmöglichkeit ${index + 1}`
+        );
+
+        const number = document.createElement("span");
+        number.className = "answer-number";
+        number.textContent = index + 1;
+
+        button.appendChild(number);
+        button.appendChild(createFigure(tile));
+
+        button.addEventListener("click", () => {
+          checkAnswer(index);
+        });
+
+        answersElement.appendChild(button);
+      });
+    }
+
+    function updateStatistics() {
+      document.getElementById("taskNumber").textContent = taskNumber;
+      document.getElementById("correctCount").textContent = correctCount;
+      document.getElementById("wrongCount").textContent = wrongCount;
+    }
+
+    function updateTimer() {
+      timerElement.textContent = `${seconds} Sekunden`;
+
+      timerElement.classList.remove("warning", "danger");
+
+      if (seconds <= 10) {
+        timerElement.classList.add("danger");
+      } else if (seconds <= 20) {
+        timerElement.classList.add("warning");
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+
+      seconds = TIME_LIMIT;
+      updateTimer();
+
+      timer = setInterval(() => {
+        seconds--;
+        updateTimer();
+
+        if (seconds <= 0) {
+          clearInterval(timer);
+          timeExpired();
+        }
+      }, 1000);
+    }
+
+    function disableAnswers() {
+      document.querySelectorAll(".answer").forEach(button => {
+        button.disabled = true;
+      });
+    }
+
+    function showCorrectAnswer() {
+      const buttons = document.querySelectorAll(".answer");
+
+      buttons.forEach((button, index) => {
+        if (index === puzzle.correctIndex) {
+          button.classList.add("correct");
+        }
+      });
+    }
+
+    function checkAnswer(index) {
+      if (locked) return;
+
+      locked = true;
+      clearInterval(timer);
+      disableAnswers();
+
+      const buttons = document.querySelectorAll(".answer");
+
+      if (index === puzzle.correctIndex) {
+        correctCount++;
+        buttons[index].classList.add("correct");
+
+        feedbackElement.textContent = "Richtig!";
+        feedbackElement.className = "success";
+      } else {
+        wrongCount++;
+        buttons[index].classList.add("wrong");
+        showCorrectAnswer();
+
+        feedbackElement.textContent =
+          "Leider falsch. Die richtige Antwort ist grün markiert.";
+        feedbackElement.className = "error";
+      }
+
+      ruleElement.textContent = "Erkannte Regel: " + puzzle.explanation;
+      updateStatistics();
+
+      setTimeout(newTask, 2500);
+    }
+
+    function timeExpired() {
+      if (locked) return;
+
+      locked = true;
+      wrongCount++;
+
+      disableAnswers();
+      showCorrectAnswer();
+
+      feedbackElement.textContent =
+        "Die Zeit ist abgelaufen.";
+      feedbackElement.className = "error";
+
+      ruleElement.textContent = "Erkannte Regel: " + puzzle.explanation;
+      updateStatistics();
+
+      setTimeout(newTask, 2500);
+    }
+
+    function newTask() {
+      clearInterval(timer);
+
+      taskNumber++;
+      locked = false;
+      puzzle = generatePuzzle();
+
+      feedbackElement.textContent = "";
+      feedbackElement.className = "";
+
+      ruleElement.textContent =
+        "Die Regel wird nach der Beantwortung angezeigt.";
+
+      renderMatrix();
+      renderAnswers();
+      updateStatistics();
+      startTimer();
+    }
+
+    newTask();
+  </script>
+</body>
+</html>

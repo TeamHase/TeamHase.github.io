@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meine Startseite</title>
+
+  <style>
+    :root {
+      --background: #f3f6fb;
+      --card: #ffffff;
+      --text: #182230;
+      --muted: #687386;
+      --primary: #315bea;
+      --primary-hover: #2447c7;
+      --danger: #dc3545;
+      --border: #dde3ed;
+      --shadow: 0 12px 30px rgba(28, 43, 70, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(49, 91, 234, 0.08), transparent 35%),
+        var(--background);
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 45px 0;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    header h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .admin-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+    }
+
+    .admin-panel h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.35rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+      font-size: 0.92rem;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 13px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 91, 234, 0.12);
+    }
+
+    textarea {
+      min-height: 95px;
+      resize: vertical;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 17px;
+      font: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-button {
+      color: white;
+      background: var(--primary);
+    }
+
+    .primary-button:hover {
+      background: var(--primary-hover);
+    }
+
+    .secondary-button {
+      background: #e9edf5;
+      color: var(--text);
+    }
+
+    .danger-button {
+      background: #fff0f1;
+      color: var(--danger);
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .link-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 21px;
+      box-shadow: var(--shadow);
+    }
+
+    .link-card h3 {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+      overflow-wrap: anywhere;
+    }
+
+    .link-card p {
+      flex: 1;
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .link-url {
+      display: block;
+      margin-bottom: 16px;
+      color: var(--primary);
+      font-size: 0.86rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .open-button {
+      flex: 1;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 9px;
+      padding: 10px;
+      color: white;
+      background: var(--primary);
+      font-weight: bold;
+    }
+
+    .edit-button,
+    .delete-button {
+      padding: 10px 13px;
+    }
+
+    .edit-button {
+      color: var(--text);
+      background: #e9edf5;
+    }
+
+    .delete-button {
+      color: var(--danger);
+      background: #fff0f1;
+    }
+
+    .empty-message {
+      grid-column: 1 / -1;
+      padding: 45px 20px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.65);
+      border: 2px dashed var(--border);
+      border-radius: 15px;
+    }
+
+    @media (max-width: 850px) {
+      .links-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: min(100% - 22px, 1180px);
+        padding: 25px 0;
+      }
+
+      .form-grid,
+      .links-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full-width {
+        grid-column: auto;
+      }
+
+      .admin-panel {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Meine Startseite</h1>
+      <p>Deine wichtigsten Webseiten übersichtlich an einem Ort</p>
+    </header>
+
+    <section class="admin-panel">
+      <h2 id="form-title">Neuen Link hinzufügen</h2>
+
+      <form id="link-form">
+        <div class="form-grid">
+          <div>
+            <label for="title">Titel</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="Zum Beispiel: Google"
+              required
+            >
+          </div>
+
+          <div>
+            <label for="url">Externe URL</label>
+            <input
+              type="url"
+              id="url"
+              placeholder="https://www.beispiel.de"
+              required
+            >
+          </div>
+
+          <div class="full-width">
+            <label for="description">Beschreibung</label>
+            <textarea
+              id="description"
+              placeholder="Beschreibe, wofür dieser Link verwendet wird..."
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button type="submit" class="primary-button" id="submit-button">
+            Link hinzufügen
+          </button>
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancel-button"
+            hidden
+          >
+            Bearbeiten abbrechen
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <div class="search-box">
+      <input
+        type="search"
+        id="search"
+        placeholder="Links durchsuchen..."
+      >
+    </div>
+
+    <section id="links-container" class="links-grid"></section>
+  </main>
+
+  <script>
+    const form = document.getElementById("link-form");
+    const titleInput = document.getElementById("title");
+    const urlInput = document.getElementById("url");
+    const descriptionInput = document.getElementById("description");
+    const linksContainer = document.getElementById("links-container");
+    const searchInput = document.getElementById("search");
+    const submitButton = document.getElementById("submit-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const formTitle = document.getElementById("form-title");
+
+    let links = JSON.parse(localStorage.getItem("meine-startseite-links")) || [];
+    let editingId = null;
+
+    function saveLinks() {
+      localStorage.setItem("meine-startseite-links", JSON.stringify(links));
+    }
+
+    function createId() {
+      return Date.now().toString() + Math.random().toString(16).slice(2);
+    }
+
+    function renderLinks() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+
+      const filteredLinks = links.filter(link =>
+        link.title.toLowerCase().includes(searchTerm) ||
+        link.description.toLowerCase().includes(searchTerm) ||
+        link.url.toLowerCase().includes(searchTerm)
+      );
+
+      linksContainer.replaceChildren();
+
+      if (filteredLinks.length === 0) {
+        const emptyMessage = document.createElement("div");
+        emptyMessage.className = "empty-message";
+        emptyMessage.textContent = searchTerm
+          ? "Keine passenden Links gefunden."
+          : "Noch keine Links vorhanden. Füge oben deinen ersten Link hinzu.";
+        linksContainer.appendChild(emptyMessage);
+        return;
+      }
+
+      filteredLinks.forEach(link => {
+        const card = document.createElement("article");
+        card.className = "link-card";
+
+        const title = document.createElement("h3");
+        title.textContent = link.title;
+
+        const description = document.createElement("p");
+        description.textContent = link.description;
+
+        const url = document.createElement("span");
+        url.className = "link-url";
+        url.textContent = link.url;
+
+        const actions = document.createElement("div");
+        actions.className = "card-actions";
+
+        const openButton = document.createElement("a");
+        openButton.className = "open-button";
+        openButton.href = link.url;
+        openButton.target = "_blank";
+        openButton.rel = "noopener noreferrer";
+        openButton.textContent = "Öffnen";
+
+        const editButton = document.createElement("button");
+        editButton.className = "edit-button";
+        editButton.textContent = "Bearbeiten";
+        editButton.addEventListener("click", () => editLink(link.id));
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-button";
+        deleteButton.textContent = "Löschen";
+        deleteButton.addEventListener("click", () => deleteLink(link.id));
+
+        actions.append(openButton, editButton, deleteButton);
+        card.append(title, description, url, actions);
+        linksContainer.appendChild(card);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const title = titleInput.value.trim();
+      const url = urlInput.value.trim();
+      const description = descriptionInput.value.trim();
+
+      if (!title || !url || !description) {
+        return;
+      }
+
+      if (editingId) {
+        const link = links.find(item => item.id === editingId);
+
+        if (link) {
+          link.title = title;
+          link.url = url;
+          link.description = description;
+        }
+
+        editingId = null;
+        submitButton.textContent = "Link hinzufügen";
+        formTitle.textContent = "Neuen Link hinzufügen";
+        cancelButton.hidden = true;
+      } else {
+        links.push({
+          id: createId(),
+          title,
+          url,
+          description
+        });
+      }
+
+      saveLinks();
+      form.reset();
+      renderLinks();
+    });
+
+    function editLink(id) {
+      const link = links.find(item => item.id === id);
+
+      if (!link) {
+        return;
+      }
+
+      editingId = id;
+      titleInput.value = link.title;
+      urlInput.value = link.url;
+      descriptionInput.value = link.description;
+
+      submitButton.textContent = "Änderungen speichern";
+      formTitle.textContent = "Link bearbeiten";
+      cancelButton.hidden = false;
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    function deleteLink(id) {
+      const confirmed = confirm("Möchtest du diesen Link wirklich löschen?");
+
+      if (!confirmed) {
+        return;
+      }
+
+      links = links.filter(link => link.id !== id);
+      saveLinks();
+      renderLinks();
+    }
+
+    cancelButton.addEventListener("click", () => {
+      editingId = null;
+      form.reset();
+      submitButton.textContent = "Link hinzufügen";
+      formTitle.textContent = "Neuen Link hinzufügen";
+      cancelButton.hidden = true;
+    });
+
+    searchInput.addEventListener("input", renderLinks);
+
+    renderLinks();
+  </script>
+</body>
+</html>

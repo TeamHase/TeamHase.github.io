@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technischer Verständnis-Test</title>
+
+  <style>
+    :root {
+      --blue: #1769aa;
+      --dark-blue: #104b78;
+      --green: #198754;
+      --red: #dc3545;
+      --light: #f4f7fa;
+      --dark: #202832;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: var(--dark);
+      background: linear-gradient(135deg, #dceeff, #f8fafc);
+    }
+
+    .container {
+      max-width: 850px;
+      margin: auto;
+      overflow: hidden;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    header {
+      padding: 25px;
+      text-align: center;
+      color: white;
+      background: var(--blue);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 0;
+    }
+
+    .content {
+      padding: 25px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .intro {
+      line-height: 1.6;
+    }
+
+    .info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 25px 0;
+    }
+
+    .info-box {
+      padding: 15px;
+      text-align: center;
+      border-radius: 10px;
+      background: var(--light);
+    }
+
+    .info-box strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--dark-blue);
+      font-size: 23px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .main-button {
+      width: 100%;
+      color: white;
+      background: var(--blue);
+    }
+
+    .next-button {
+      margin-top: 18px;
+      color: white;
+      background: #6c757d;
+    }
+
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .progress {
+      color: var(--dark-blue);
+      font-weight: bold;
+    }
+
+    .timer {
+      min-width: 90px;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      color: white;
+      background: var(--green);
+      font-size: 19px;
+      font-weight: bold;
+    }
+
+    .timer.warning {
+      color: #222;
+      background: #f0ad00;
+    }
+
+    .timer.danger {
+      background: var(--red);
+    }
+
+    .progress-bar {
+      height: 9px;
+      margin-bottom: 25px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #e5e7eb;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--blue);
+      transition: width 0.3s;
+    }
+
+    .category {
+      margin-bottom: 10px;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .question {
+      font-size: 21px;
+      line-height: 1.4;
+    }
+
+    .description {
+      padding: 13px;
+      border-left: 4px solid var(--blue);
+      background: #eef7ff;
+      line-height: 1.5;
+    }
+
+    .graphic {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 230px;
+      margin: 20px 0;
+      padding: 10px;
+      overflow: hidden;
+      border: 1px solid #dbe3eb;
+      border-radius: 12px;
+      background: #fafcfe;
+    }
+
+    svg {
+      width: 100%;
+      max-width: 680px;
+      height: 230px;
+    }
+
+    .answers {
+      display: grid;
+      gap: 12px;
+    }
+
+    .answer {
+      width: 100%;
+      text-align: left;
+      border: 2px solid #d6dee7;
+      color: var(--dark);
+      background: white;
+    }
+
+    .answer:hover {
+      border-color: var(--blue);
+      background: #eef7ff;
+    }
+
+    .answer.correct {
+      border-color: var(--green);
+      background: #d9f4e4;
+    }
+
+    .answer.wrong {
+      border-color: var(--red);
+      background: #fbe0e3;
+    }
+
+    .answer:disabled {
+      cursor: default;
+      transform: none;
+    }
+
+    .feedback {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .feedback.success {
+      color: #126333;
+      background: #d9f4e4;
+    }
+
+    .feedback.error {
+      color: #8c1d29;
+      background: #fbe0e3;
+    }
+
+    .result {
+      text-align: center;
+    }
+
+    .score {
+      margin: 20px;
+      color: var(--blue);
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    .review {
+      margin-top: 25px;
+    }
+
+    .review-item {
+      margin: 10px 0;
+      padding: 12px;
+      border-left: 4px solid var(--green);
+      background: #f8fafc;
+      line-height: 1.5;
+    }
+
+    .review-item.wrong {
+      border-left-color: var(--red);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+      }
+
+      .content {
+        padding: 17px;
+      }
+
+      .info {
+        grid-template-columns: 1fr;
+      }
+
+      .question {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>Technischer Verständnis-Test</h1>
+      <p>Mechanische Zusammenhänge erkennen</p>
+    </header>
+
+    <section id="startScreen" class="content">
+      <div class="intro">
+        <p>
+          In den folgenden Aufgaben sehen Sie jeweils zu einer mechanischen
+          oder technischen Fragestellung eine kurze Beschreibung.
+        </p>
+
+        <p>
+          Lösen Sie die Aufgaben durch Beobachten der Abbildung und durch
+          logisches Schlussfolgern. Komplexe Rechenaufgaben sind nicht nötig.
+        </p>
+      </div>
+
+      <div class="info">
+        <div class="info-box">
+          Aufgaben
+          <strong>10</strong>
+        </div>
+
+        <div class="info-box">
+          Zeit je Aufgabe
+          <strong>50 s</strong>
+        </div>
+
+        <div class="info-box">
+          Antworten
+          <strong>3</strong>
+        </div>
+      </div>
+
+      <button id="startButton" class="main-button">
+        Test starten
+      </button>
+    </section>
+
+    <section id="quizScreen" class="content hidden">
+      <div class="quiz-top">
+        <div id="progress" class="progress"></div>
+        <div id="timer" class="timer">50 s</div>
+      </div>
+
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <div id="category" class="category"></div>
+      <div id="question" class="question"></div>
+      <div id="description" class="description"></div>
+      <div id="graphic" class="graphic"></div>
+      <div id="answers" class="answers"></div>
+
+      <div id="feedback" class="feedback hidden"></div>
+
+      <button id="nextButton" class="next-button hidden">
+        Nächste Aufgabe
+      </button>
+    </section>
+
+    <section id="resultScreen" class="content hidden">
+      <div class="result">
+        <h2>Test beendet</h2>
+        <div id="score" class="score"></div>
+        <p id="resultText"></p>
+
+        <button id="restartButton" class="main-button">
+          Neuen Test starten
+        </button>
+      </div>
+
+      <div id="review" class="review"></div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL_QUESTIONS = 10;
+    const TIME_LIMIT = 50;
+
+    let currentQuestion = 0;
+    let points = 0;
+    let timeLeft = TIME_LIMIT;
+    let timer = null;
+    let currentTask = null;
+    let results = [];
+
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const nextButton = document.getElementById("nextButton");
+
+    const progressElement = document.getElementById("progress");
+    const progressFill = document.getElementById("progressFill");
+    const timerElement = document.getElementById("timer");
+
+    const categoryElement = document.getElementById("category");
+    const questionElement = document.getElementById("question");
+    const descriptionElement = document.getElementById("description");
+    const graphicElement = document.getElementById("graphic");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+
+    const scoreElement = document.getElementById("score");
+    const resultTextElement = document.getElementById("resultText");
+    const reviewElement = document.getElementById("review");
+
+    startButton.addEventListener("click", startQuiz);
+    restartButton.addEventListener("click", startQuiz);
+    nextButton.addEventListener("click", nextQuestion);
+
+    function randomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+      clearInterval(timer);
+
+      currentQuestion = 0;
+      points = 0;
+      results = [];
+
+      startScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      quizScreen.classList.remove("hidden");
+
+      showQuestion();
+    }
+
+    function showQuestion() {
+      clearInterval(timer);
+
+      currentTask = createTask();
+
+      progressElement.textContent =
+        `Aufgabe ${currentQuestion + 1} von ${TOTAL_QUESTIONS}`;
+
+      progressFill.style.width =
+        `${((currentQuestion + 1) / TOTAL_QUESTIONS) * 100}%`;
+
+      categoryElement.textContent = currentTask.category;
+      questionElement.textContent = currentTask.question;
+      descriptionElement.textContent = currentTask.description;
+      graphicElement.innerHTML = currentTask.graphic;
+
+      answersElement.innerHTML = "";
+      feedbackElement.className = "feedback hidden";
+      feedbackElement.innerHTML = "";
+      nextButton.classList.add("hidden");
+
+      currentTask.answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+
+        button.className = "answer";
+        button.textContent =
+          `${String.fromCharCode(65 + index)}) ${answer.text}`;
+
+        button.addEventListener("click", () => {
+          chooseAnswer(index);
+        });
+
+        answersElement.appendChild(button);
+      });
+
+      timeLeft = TIME_LIMIT;
+      updateTimer();
+
+      timer = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          timeExpired();
+        }
+      }, 1000);
+    }
+
+    function updateTimer() {
+      timerElement.textContent = `${timeLeft} s`;
+      timerElement.classList.remove("warning", "danger");
+
+      if (timeLeft <= 10) {
+        timerElement.classList.add("danger");
+      } else if (timeLeft <= 20) {
+        timerElement.classList.add("warning");
+      }
+    }
+
+    function chooseAnswer(index) {
+      clearInterval(timer);
+
+      const selected = currentTask.answers[index];
+      const correctIndex = currentTask.answers.findIndex(
+        answer => answer.correct
+      );
+
+      const buttons = document.querySelectorAll(".answer");
+
+      buttons.forEach((button, buttonIndex) => {
+        button.disabled = true;
+
+        if (buttonIndex === correctIndex) {
+          button.classList.add("correct");
+        }
+
+        if (buttonIndex === index && !selected.correct) {
+          button.classList.add("wrong");
+        }
+      });
+
+      if (selected.correct) {
+        points++;
+
+        feedbackElement.className = "feedback success";
+        feedbackElement.innerHTML =
+          `<strong>Richtig!</strong><br>${currentTask.explanation}`;
+      } else {
+        feedbackElement.className = "feedback error";
+        feedbackElement.innerHTML =
+          `<strong>Falsch.</strong><br>${currentTask.explanation}`;
+      }
+
+      results.push({
+        question: currentTask.question,
+        answer: selected.text,
+        correct: selected.correct,
+        explanation: currentTask.explanation
+      });
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function timeExpired() {
+      const correctIndex = currentTask.answers.findIndex(
+        answer => answer.correct
+      );
+
+      const buttons = document.querySelectorAll(".answer");
+
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+
+        if (index === correctIndex) {
+          button.classList.add("correct");
+        }
+      });
+
+      feedbackElement.className = "feedback error";
+      feedbackElement.innerHTML =
+        `<strong>Zeit abgelaufen.</strong><br>${currentTask.explanation}`;
+
+      results.push({
+        question: currentTask.question,
+        answer: "Keine Antwort",
+        correct: false,
+        explanation: currentTask.explanation
+      });
+
+      nextButton.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+
+      if (currentQuestion >= TOTAL_QUESTIONS) {
+        showResult();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function showResult() {
+      clearInterval(timer);
+
+      quizScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      const percentage = Math.round(
+        points / TOTAL_QUESTIONS * 100
+      );
+
+      scoreElement.textContent =
+        `${points} / ${TOTAL_QUESTIONS} Punkte`;
+
+      if (percentage >= 90) {
+        resultTextElement.textContent =
+          "Sehr gute Leistung. Die technischen Zusammenhänge wurden sicher erkannt.";
+      } else if (percentage >= 70) {
+        resultTextElement.textContent =
+          "Gute Leistung. Die meisten Aufgaben wurden richtig gelöst.";
+      } else if (percentage >= 50) {
+        resultTextElement.textContent =
+          "Grundkenntnisse sind vorhanden. Einige Zusammenhänge können noch geübt werden.";
+      } else {
+        resultTextElement.textContent =
+          "Die Grundlagen mechanischer Konstruktionen sollten noch einmal wiederholt werden.";
+      }
+
+      reviewElement.innerHTML = "<h3>Aufgabenübersicht</h3>";
+
+      results.forEach((result, index) => {
+        const item = document.createElement("div");
+
+        item.className =
+          `review-item ${result.correct ? "" : "wrong"}`;
+
+        item.innerHTML =
+          `<strong>${index + 1}. ${result.correct ? "Richtig" : "Falsch"}</strong><br>` +
+          `${result.question}<br>` +
+          `<small>Antwort: ${result.answer}</small><br>` +
+          `<small>${result.explanation}</small>`;
+
+        reviewElement.appendChild(item);
+      });
+    }
+
+    /*
+     * Aufgaben-Auswahl
+     */
+
+    function createTask() {
+      const taskTypes = [
+        createLeverTask,
+        createGearTask,
+        createPulleyTask,
+        createRampTask,
+        createBeltTask
+      ];
+
+      return randomItem(taskTypes)();
+    }
+
+    /*
+     * Aufgabe 1: Hebel
+     */
+
+    function createLeverTask() {
+      const scenarios = [
+        {
+          result: "links",
+          description:
+            "Links hängt eine schwere Last. Rechts hängt eine leichtere Last.",
+          left: "schwer",
+          right: "leicht",
+          explanation:
+            "Die schwerere Last zieht die linke Seite nach unten."
+        },
+        {
+          result: "rechts",
+          description:
+            "Rechts hängt eine schwere Last. Links hängt eine leichtere Last.",
+          left: "leicht",
+          right: "schwer",
+          explanation:
+            "Die schwerere Last zieht die rechte Seite nach unten."
+        },
+        {
+          result: "gleich",
+          description:
+            "Auf beiden Seiten hängen gleich schwere Lasten im gleichen Abstand.",
+          left: "gleich",
+          right: "gleich",
+          explanation:
+            "Beide Seiten wirken gleich stark. Der Hebel bleibt waagerecht."
+        }
+      ];
+
+      const scenario = randomItem(scenarios);
+
+      let leftWeight = "3 kg";
+      let rightWeight = "3 kg";
+
+      if (scenario.left === "schwer") {
+        leftWeight = "8 kg";
+        rightWeight = "3 kg";
+      }
+
+      if (scenario.right === "schwer") {
+        leftWeight = "3 kg";
+        rightWeight = "8 kg";
+      }
+
+      return {
+        category: "Hebel",
+        question: "Welche Seite des Hebels bewegt sich nach unten?",
+        description: scenario.description,
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <line x1="90" y1="120" x2="560" y2="120"
+                  stroke="#222" stroke-width="10"
+                  stroke-linecap="round"/>
+
+            <polygon points="305,165 345,165 325,115"
+                     fill="#1769aa"/>
+
+            <circle cx="140" cy="120" r="28"
+                    fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <circle cx="510" cy="120" r="28"
+                    fill="#f0ad00" stroke="#9a6c00" stroke-width="3"/>
+
+            <line x1="140" y1="120" x2="140" y2="65"
+                  stroke="#dc3545" stroke-width="4"
+                  marker-end="url(#arrow)"/>
+
+            <line x1="510" y1="120" x2="510" y2="65"
+                  stroke="#dc3545" stroke-width="4"
+                  marker-end="url(#arrow)"/>
+
+            <text x="111" y="126" font-size="14">${leftWeight}</text>
+            <text x="481" y="126" font-size="14">${rightWeight}</text>
+
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10"
+                      refX="5" refY="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#dc3545"/>
+              </marker>
+            </defs>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: "Die linke Seite",
+            correct: scenario.result === "links"
+          },
+          {
+            text: "Die rechte Seite",
+            correct: scenario.result === "rechts"
+          },
+          {
+            text: "Keine Seite – der Hebel bleibt waagerecht",
+            correct: scenario.result === "gleich"
+          }
+        ]),
+        explanation: scenario.explanation
+      };
+    }
+
+    /*
+     * Aufgabe 2: Zahnräder
+     */
+
+    function createGearTask() {
+      const inputClockwise = Math.random() > 0.5;
+      const inputSymbol = inputClockwise ? "↻" : "↺";
+      const outputSymbol = inputClockwise ? "↺" : "↻";
+
+      return {
+        category: "Zahnräder",
+        question:
+          "Das linke Zahnrad dreht sich wie dargestellt. " +
+          "Wie dreht sich das rechte Zahnrad?",
+        description:
+          "Zwei Zahnräder greifen direkt ineinander.",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <circle cx="230" cy="115" r="67"
+                    fill="#cce4f7" stroke="#1769aa" stroke-width="5"/>
+
+            <circle cx="420" cy="115" r="45"
+                    fill="#d9f1df" stroke="#198754" stroke-width="5"/>
+
+            <text x="205" y="130" font-size="48">${inputSymbol}</text>
+            <text x="402" y="130" font-size="38">?</text>
+
+            <text x="195" y="200" font-size="17">Antrieb</text>
+            <text x="390" y="200" font-size="17">Abtrieb</text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: "Gleiche Drehrichtung",
+            correct: false
+          },
+          {
+            text: "Entgegengesetzte Drehrichtung",
+            correct: true
+          },
+          {
+            text: "Das rechte Zahnrad bewegt sich nicht",
+            correct: false
+          }
+        ]),
+        explanation:
+          "Direkt verbundene Zahnräder drehen sich immer in entgegengesetzte Richtungen."
+      };
+    }
+
+    /*
+     * Aufgabe 3: Rolle
+     */
+
+    function createPulleyTask() {
+      return {
+        category: "Rolle",
+        question:
+          "Welche Aussage zur dargestellten losen Rolle ist richtig?",
+        description:
+          "Die Last wird von zwei Seilabschnitten getragen.",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <line x1="100" y1="35" x2="550" y2="35"
+                  stroke="#333" stroke-width="8"/>
+
+            <path d="M230 35 V130
+                     A75 75 0 0 0 380 130
+                     V65"
+                  fill="none"
+                  stroke="#8b5e3c"
+                  stroke-width="6"/>
+
+            <circle cx="305" cy="130" r="45"
+                    fill="#cce4f7"
+                    stroke="#1769aa"
+                    stroke-width="5"/>
+
+            <rect x="282" y="178" width="46" height="25"
+                  fill="#f0ad00"
+                  stroke="#9a6c00"
+                  stroke-width="3"/>
+
+            <text x="175" y="215" font-size="18">
+              Last
+            </text>
+
+            <text x="400" y="90" font-size="18">
+              Zugrichtung
+            </text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: "Die benötigte Kraft ist geringer als bei einer festen Rolle.",
+            correct: true
+          },
+          {
+            text: "Die Last wird schwerer.",
+            correct: false
+          },
+          {
+            text: "Die Rolle verhindert jede Bewegung.",
+            correct: false
+          }
+        ]),
+        explanation:
+          "Eine lose Rolle erleichtert das Heben einer Last. Dafür muss ein längerer Seilweg zurückgelegt werden."
+      };
+    }
+
+    /*
+     * Aufgabe 4: Schiefe Ebene
+     */
+
+    function createRampTask() {
+      const correctSide = Math.random() > 0.5 ? "links" : "rechts";
+
+      return {
+        category: "Schiefe Ebene",
+        question:
+          "Auf welcher Rampe ist das Hochziehen der Kiste einfacher?",
+        description:
+          "Vergleichen Sie die flache und die steile Rampe.",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <line x1="40" y1="185" x2="610" y2="185"
+                  stroke="#555" stroke-width="5"/>
+
+            <line x1="70" y1="155" x2="285" y2="155"
+                  stroke="#198754" stroke-width="10"/>
+
+            <line x1="365" y1="155" x2="565" y2="65"
+                  stroke="#dc3545" stroke-width="10"/>
+
+            <rect x="150" y="125" width="42" height="30"
+                  fill="#f0ad00"
+                  stroke="#9a6c00"
+                  stroke-width="3"/>
+
+            <rect x="430" y="105" width="42" height="30"
+                  transform="rotate(-24 451 120)"
+                  fill="#f0ad00"
+                  stroke="#9a6c00"
+                  stroke-width="3"/>
+
+            <text x="175" y="215" font-size="24">A</text>
+            <text x="460" y="215" font-size="24">B</text>
+
+            <text x="105" y="45" font-size="17">
+              flach
+            </text>
+
+            <text x="450" y="45" font-size="17">
+              steil
+            </text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: "Rampe A – die flachere Rampe",
+            correct: correctSide === "links"
+          },
+          {
+            text: "Rampe B – die steilere Rampe",
+            correct: correctSide === "rechts"
+          },
+          {
+            text: "Beide Rampen sind gleich leicht",
+            correct: false
+          }
+        ]),
+        explanation:
+          "Eine flachere Rampe benötigt weniger Kraft. Der Weg ist dafür länger."
+      };
+    }
+
+    /*
+     * Aufgabe 5: Riemenantrieb
+     */
+
+    function createBeltTask() {
+      const crossed = Math.random() > 0.5;
+      const inputDirection = Math.random() > 0.5 ? "↻" : "↺";
+      const outputDirection =
+        crossed === false
+          ? inputDirection
+          : inputDirection === "↻" ? "↺" : "↻";
+
+      return {
+        category: "Riemenantrieb",
+        question:
+          "Wie dreht sich die rechte Riemenscheibe?",
+        description: crossed
+          ? "Der Riemen ist gekreuzt."
+          : "Der Riemen ist nicht gekreuzt.",
+        graphic: `
+          <svg viewBox="0 0 650 230">
+            <circle cx="215" cy="115" r="52"
+                    fill="#cce4f7"
+                    stroke="#1769aa"
+                    stroke-width="5"/>
+
+            <circle cx="435" cy="115" r="52"
+                    fill="#d9f1df"
+                    stroke="#198754"
+                    stroke-width="5"/>
+
+            ${
+              crossed
+                ? `
+                  <path d="M215 63 L435 167
+                           M215 167 L435 63"
+                        stroke="#8b5e3c"
+                        stroke-width="7"
+                        fill="none"/>
+                `
+                : `
+                  <path d="M215 63 L435 63
+                           M215 167 L435 167"
+                        stroke="#8b5e3c"
+                        stroke-width="7"
+                        fill="none"/>
+                `
+            }
+
+            <text x="190" y="130" font-size="40">
+              ${inputDirection}
+            </text>
+
+            <text x="415" y="130" font-size="40">?</text>
+
+            <text x="175" y="205" font-size="17">Antrieb</text>
+            <text x="395" y="205" font-size="17">Abtrieb</text>
+          </svg>
+        `,
+        answers: shuffle([
+          {
+            text: "Gleiche Drehrichtung wie links",
+            correct: !crossed
+          },
+          {
+            text: "Entgegengesetzte Drehrichtung",
+            correct: crossed
+          },
+          {
+            text: "Die rechte Scheibe steht still",
+            correct: false
+          }
+        ]),
+        explanation: crossed
+          ? "Bei einem gekreuzten Riemen drehen sich die Scheiben entgegengesetzt."
+          : "Bei einem nicht gekreuzten Riemen drehen sich beide Scheiben in die gleiche Richtung."
+      };
+    }
+  </script>
+</body>
+</html>

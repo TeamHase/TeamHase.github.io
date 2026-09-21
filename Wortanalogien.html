@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Wortanalogien</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #1f2937;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            padding: 30px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #312e81;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .setting {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        select,
+        button {
+            font-size: 16px;
+            border-radius: 8px;
+            padding: 11px 14px;
+            cursor: pointer;
+        }
+
+        select {
+            border: 1px solid #9ca3af;
+            background: white;
+        }
+
+        button {
+            border: none;
+            background: #4f46e5;
+            color: white;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #3730a3;
+            transform: translateY(-1px);
+        }
+
+        #startButton,
+        #stopButton {
+            margin-top: 10px;
+        }
+
+        #stopButton {
+            background: #dc2626;
+        }
+
+        #stopButton:hover {
+            background: #991b1b;
+        }
+
+        .game {
+            display: none;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .difficulty-label {
+            text-align: center;
+            color: #4b5563;
+            font-weight: bold;
+        }
+
+        .timer-box {
+            margin: 20px 0;
+            padding: 12px;
+            text-align: center;
+            background: #f3f4f6;
+            border-radius: 10px;
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        #timer {
+            color: #16a34a;
+        }
+
+        .progress {
+            height: 12px;
+            margin-top: 8px;
+            overflow: hidden;
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 100%;
+            background: #16a34a;
+            transition: width 1s linear;
+        }
+
+        .question {
+            margin: 30px 0;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .answer-button {
+            min-height: 60px;
+            background: #eef2ff;
+            color: #312e81;
+            border: 2px solid #c7d2fe;
+            font-weight: bold;
+        }
+
+        .answer-button:hover {
+            background: #c7d2fe;
+        }
+
+        .answer-button.correct {
+            background: #bbf7d0;
+            border-color: #16a34a;
+            color: #166534;
+        }
+
+        .answer-button.wrong {
+            background: #fecaca;
+            border-color: #dc2626;
+            color: #991b1b;
+        }
+
+        #feedback {
+            min-height: 28px;
+            margin: 20px 0 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        .info {
+            color: #92400e;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .settings,
+            .answers {
+                grid-template-columns: 1fr;
+            }
+
+            .question {
+                font-size: 23px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Wortanalogien</h1>
+
+    <div id="startScreen" class="start-screen">
+        <p>
+            Erkenne die Beziehung zwischen zwei Wörtern
+            und übertrage sie auf ein neues Begriffspaar.
+        </p>
+
+        <div class="settings">
+            <div class="setting">
+                <label for="difficulty">Schwierigkeitsstufe</label>
+
+                <select id="difficulty">
+                    <option value="leicht">Leicht</option>
+                    <option value="mittel">Mittel</option>
+                    <option value="schwer">Schwer</option>
+                </select>
+            </div>
+
+            <div class="setting">
+                <label for="timeMode">Zeitvorgabe</label>
+
+                <select id="timeMode">
+                    <option value="30">30 Sekunden</option>
+                    <option value="0">Üben ohne Zeitbegrenzung</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="startButton">Spiel starten</button>
+    </div>
+
+    <div id="game" class="game">
+        <div class="status">
+            <span>Richtig: <span id="correctCount">0</span></span>
+            <span>Falsch: <span id="wrongCount">0</span></span>
+            <span>Aufgabe: <span id="questionCount">0</span></span>
+        </div>
+
+        <div id="difficultyLabel" class="difficulty-label"></div>
+
+        <div class="timer-box">
+            <span id="timerText">Zeit:</span>
+            <span id="timer">30</span>
+            <span id="secondsText">Sekunden</span>
+
+            <div id="progressContainer" class="progress">
+                <div id="progressBar"></div>
+            </div>
+        </div>
+
+        <div id="question" class="question"></div>
+
+        <div id="answers" class="answers"></div>
+
+        <div id="feedback"></div>
+
+        <button id="stopButton">Spiel beenden</button>
+    </div>
+</div>
+
+<script>
+    /*
+     * Die Aufgaben sind nach Schwierigkeitsstufen sortiert.
+     * Jede Kategorie enthält Wortpaare mit derselben Beziehung.
+     */
+
+    const analogyCategories = [
+        // LEICHT
+        {
+            difficulty: "leicht",
+            name: "Lebensraum",
+            pairs: [
+                ["Vogel", "Nest"],
+                ["Biene", "Bienenstock"],
+                ["Hund", "Hundehütte"],
+                ["Pferd", "Stall"],
+                ["Fisch", "Aquarium"],
+                ["Fuchs", "Bau"],
+                ["Mensch", "Haus"],
+                ["Löwe", "Höhle"]
+            ]
+        },
+
+        {
+            difficulty: "leicht",
+            name: "Jungtier",
+            pairs: [
+                ["Hund", "Welpe"],
+                ["Katze", "Kätzchen"],
+                ["Pferd", "Fohlen"],
+                ["Kuh", "Kalb"],
+                ["Schaf", "Lamm"],
+                ["Huhn", "Küken"],
+                ["Frosch", "Kaulquappe"],
+                ["Ziege", "Zicklein"]
+            ]
+        },
+
+        {
+            difficulty: "leicht",
+            name: "Gegenteil",
+            pairs: [
+                ["heiß", "kalt"],
+                ["groß", "klein"],
+                ["schnell", "langsam"],
+                ["hell", "dunkel"],
+                ["alt", "jung"],
+                ["laut", "leise"],
+                ["stark", "schwach"],
+                ["früh", "spät"]
+            ]
+        },
+
+        // MITTEL
+        {
+            difficulty: "mittel",
+            name: "Werkzeug",
+            pairs: [
+                ["Schneider", "Schere"],
+                ["Maler", "Pinsel"],
+                ["Schreiner", "Säge"],
+                ["Koch", "Messer"],
+                ["Gärtner", "Spaten"],
+                ["Fotograf", "Kamera"],
+                ["Maurer", "Kelle"],
+                ["Musiker", "Instrument"]
+            ]
+        },
+
+        {
+            difficulty: "mittel",
+            name: "Material",
+            pairs: [
+                ["Ring", "Gold"],
+                ["Tisch", "Holz"],
+                ["Flasche", "Glas"],
+                ["Pullover", "Wolle"],
+                ["Reifen", "Gummi"],
+                ["Münze", "Metall"],
+                ["Buch", "Papier"],
+                ["Schuh", "Leder"]
+            ]
+        },
+
+        {
+            difficulty: "mittel",
+            name: "Ort",
+            pairs: [
+                ["Buch", "Bibliothek"],
+                ["Gemälde", "Museum"],
+                ["Flugzeug", "Flughafen"],
+                ["Zug", "Bahnhof"],
+                ["Schiff", "Hafen"],
+                ["Patient", "Krankenhaus"],
+                ["Schüler", "Schule"],
+                ["Richter", "Gericht"]
+            ]
+        },
+
+        // SCHWER
+        {
+            difficulty: "schwer",
+            name: "Tätigkeit",
+            pairs: [
+                ["Buch", "lesen"],
+                ["Musik", "hören"],
+                ["Bild", "betrachten"],
+                ["Brief", "schreiben"],
+                ["Problem", "lösen"],
+                ["Frage", "beantworten"],
+                ["Geschichte", "erzählen"],
+                ["Aufgabe", "bearbeiten"]
+            ]
+        },
+
+        {
+            difficulty: "schwer",
+            name: "Oberbegriff",
+            pairs: [
+                ["Rose", "Blume"],
+                ["Eiche", "Baum"],
+                ["Forelle", "Fisch"],
+                ["Löwe", "Tier"],
+                ["Apfel", "Obst"],
+                ["Karotte", "Gemüse"],
+                ["Tanne", "Nadelbaum"],
+                ["Tulpe", "Pflanze"]
+            ]
+        },
+
+        {
+            difficulty: "schwer",
+            name: "Teil eines Ganzen",
+            pairs: [
+                ["Rad", "Fahrrad"],
+                ["Seite", "Buch"],
+                ["Finger", "Hand"],
+                ["Blatt", "Baum"],
+                ["Zimmer", "Haus"],
+                ["Kapitel", "Roman"],
+                ["Taste", "Tastatur"],
+                ["Flügel", "Vogel"]
+            ]
+        },
+
+        {
+            difficulty: "schwer",
+            name: "Abstrakte Beziehung",
+            pairs: [
+                ["Mut", "Tapferkeit"],
+                ["Wissen", "Bildung"],
+                ["Übung", "Erfahrung"],
+                ["Geduld", "Ruhe"],
+                ["Fleiß", "Leistung"],
+                ["Vertrauen", "Sicherheit"],
+                ["Respekt", "Anerkennung"],
+                ["Hoffnung", "Zuversicht"]
+            ]
+        }
+    ];
+
+    let currentCategory;
+    let currentPair;
+    let correctAnswer;
+
+    let timeLimit = 30;
+    let timeLeft = 30;
+    let timerInterval;
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let questionCount = 0;
+    let answerLocked = false;
+
+    const startScreen = document.getElementById("startScreen");
+    const game = document.getElementById("game");
+
+    const startButton = document.getElementById("startButton");
+    const stopButton = document.getElementById("stopButton");
+
+    const difficultySelect = document.getElementById("difficulty");
+    const timeModeSelect = document.getElementById("timeMode");
+
+    const difficultyLabel = document.getElementById("difficultyLabel");
+
+    const questionElement = document.getElementById("question");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+
+    const timerText = document.getElementById("timerText");
+    const timerElement = document.getElementById("timer");
+    const secondsText = document.getElementById("secondsText");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressBar = document.getElementById("progressBar");
+
+    const correctCountElement = document.getElementById("correctCount");
+    const wrongCountElement = document.getElementById("wrongCount");
+    const questionCountElement = document.getElementById("questionCount");
+
+    startButton.addEventListener("click", startGame);
+    stopButton.addEventListener("click", stopGame);
+
+    function startGame() {
+        timeLimit = Number(timeModeSelect.value);
+
+        correctCount = 0;
+        wrongCount = 0;
+        questionCount = 0;
+
+        correctCountElement.textContent = correctCount;
+        wrongCountElement.textContent = wrongCount;
+        questionCountElement.textContent = questionCount;
+
+        const selectedDifficulty = difficultySelect.value;
+
+        difficultyLabel.textContent =
+            "Schwierigkeitsstufe: " + capitalize(selectedDifficulty);
+
+        startScreen.style.display = "none";
+        game.style.display = "block";
+
+        configureTimerDisplay();
+        createQuestion();
+    }
+
+    function stopGame() {
+        clearInterval(timerInterval);
+
+        game.style.display = "none";
+        startScreen.style.display = "block";
+
+        alert(
+            "Spiel beendet!\n\n" +
+            "Richtige Antworten: " + correctCount + "\n" +
+            "Falsche Antworten: " + wrongCount + "\n" +
+            "Bearbeitete Aufgaben: " + questionCount
+        );
+    }
+
+    function createQuestion() {
+        clearInterval(timerInterval);
+
+        answerLocked = false;
+        feedbackElement.textContent = "";
+        feedbackElement.className = "";
+
+        const selectedDifficulty = difficultySelect.value;
+
+        const availableCategories = analogyCategories.filter(category => {
+            return category.difficulty === selectedDifficulty;
+        });
+
+        currentCategory = getRandomItem(availableCategories);
+        currentPair = getRandomItem(currentCategory.pairs);
+
+        let secondPair;
+
+        do {
+            secondPair = getRandomItem(currentCategory.pairs);
+        } while (secondPair === currentPair);
+
+        const firstWord = currentPair[0];
+        const firstAnswer = currentPair[1];
+
+        const secondWord = secondPair[0];
+        correctAnswer = secondPair[1];
+
+        questionElement.textContent =
+            `${firstWord} : ${firstAnswer} = ${secondWord} : ?`;
+
+        createAnswerButtons();
+
+        questionCount++;
+        questionCountElement.textContent = questionCount;
+
+        if (timeLimit > 0) {
+            startTimer();
+        }
+    }
+
+    function createAnswerButtons() {
+        const possibleAnswers = currentCategory.pairs
+            .map(pair => pair[1])
+            .filter(answer => answer !== correctAnswer);
+
+        const wrongAnswers = [];
+
+        while (wrongAnswers.length < 3) {
+            const wrongAnswer = getRandomItem(possibleAnswers);
+
+            if (!wrongAnswers.includes(wrongAnswer)) {
+                wrongAnswers.push(wrongAnswer);
+            }
+        }
+
+        const allAnswers = [
+            correctAnswer,
+            ...wrongAnswers
+        ];
+
+        shuffleArray(allAnswers);
+
+        answersElement.innerHTML = "";
+
+        allAnswers.forEach(answer => {
+            const button = document.createElement("button");
+
+            button.textContent = answer;
+            button.className = "answer-button";
+
+            button.addEventListener("click", () => {
+                checkAnswer(answer, button);
+            });
+
+            answersElement.appendChild(button);
+        });
+    }
+
+    function checkAnswer(selectedAnswer, selectedButton) {
+        if (answerLocked) {
+            return;
+        }
+
+        answerLocked = true;
+        clearInterval(timerInterval);
+
+        const answerButtons =
+            document.querySelectorAll(".answer-button");
+
+        answerButtons.forEach(button => {
+            button.disabled = true;
+
+            if (button.textContent === correctAnswer) {
+                button.classList.add("correct");
+            }
+        });
+
+        if (selectedAnswer === correctAnswer) {
+            correctCount++;
+            correctCountElement.textContent = correctCount;
+
+            feedbackElement.textContent = "Richtig!";
+            feedbackElement.className = "success";
+        } else {
+            wrongCount++;
+            wrongCountElement.textContent = wrongCount;
+
+            selectedButton.classList.add("wrong");
+
+            feedbackElement.textContent =
+                `Falsch. Richtig wäre: „${correctAnswer}“`;
+
+            feedbackElement.className = "error";
+        }
+
+        setTimeout(createQuestion, 1200);
+    }
+
+    function configureTimerDisplay() {
+        if (timeLimit === 0) {
+            timerText.textContent = "Modus:";
+            timerElement.textContent = "Üben";
+            secondsText.textContent = "";
+
+            progressContainer.style.display = "none";
+        } else {
+            timerText.textContent = "Zeit:";
+            timerElement.textContent = timeLimit;
+            secondsText.textContent = "Sekunden";
+
+            progressContainer.style.display = "block";
+        }
+    }
+
+    function startTimer() {
+        timeLeft = timeLimit;
+        updateTimerDisplay();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        timerElement.textContent = timeLeft;
+
+        const percentage = (timeLeft / timeLimit) * 100;
+
+        progressBar.style.width = percentage + "%";
+
+        if (percentage <= 25) {
+            timerElement.style.color = "#dc2626";
+            progressBar.style.background = "#dc2626";
+        } else if (percentage <= 50) {
+            timerElement.style.color = "#d97706";
+            progressBar.style.background = "#d97706";
+        } else {
+            timerElement.style.color = "#16a34a";
+            progressBar.style.background = "#16a34a";
+        }
+    }
+
+    function handleTimeOut() {
+        if (answerLocked) {
+            return;
+        }
+
+        answerLocked = true;
+        wrongCount++;
+        wrongCountElement.textContent = wrongCount;
+
+        const answerButtons =
+            document.querySelectorAll(".answer-button");
+
+        answerButtons.forEach(button => {
+            button.disabled = true;
+
+            if (button.textContent === correctAnswer) {
+                button.classList.add("correct");
+            }
+        });
+
+        feedbackElement.textContent =
+            `Zeit abgelaufen! Richtig wäre: „${correctAnswer}“`;
+
+        feedbackElement.className = "info";
+
+        setTimeout(createQuestion, 1500);
+    }
+
+    function getRandomItem(array) {
+        return array[
+            Math.floor(Math.random() * array.length)
+        ];
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+
+        return array;
+    }
+
+    function capitalize(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+</script>
+
+</body>
+</html>

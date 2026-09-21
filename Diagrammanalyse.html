@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagrammanalyse</title>
+
+  <style>
+    :root {
+      --blau: #2563eb;
+      --dunkel: #1e293b;
+      --grau: #64748b;
+      --hell: #f1f5f9;
+      --gruen: #16a34a;
+      --rot: #dc2626;
+      --gelb: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #e2e8f0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--dunkel);
+    }
+
+    .container {
+      width: min(1100px, 94%);
+      margin: 30px auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 24px 30px;
+      color: white;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 3vw, 2.3rem);
+    }
+
+    header p {
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px 30px;
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+      font-weight: bold;
+    }
+
+    .timer {
+      min-width: 130px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+
+    .timer.warnung {
+      background: #fef3c7;
+      color: var(--gelb);
+    }
+
+    .timer.ende {
+      background: #fee2e2;
+      color: var(--rot);
+    }
+
+    main {
+      padding: 28px 30px 35px;
+    }
+
+    .instruction {
+      padding: 16px;
+      margin-bottom: 24px;
+      background: #eff6ff;
+      border-left: 5px solid var(--blau);
+      line-height: 1.55;
+    }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      background: white;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.15rem;
+    }
+
+    .description {
+      line-height: 1.5;
+      color: #334155;
+      margin-bottom: 20px;
+    }
+
+    .visualisierung {
+      min-height: 350px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: auto;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 10px;
+    }
+
+    .visualisierung svg {
+      max-width: 100%;
+      min-width: 500px;
+      height: auto;
+    }
+
+    .aussage {
+      margin: 18px 0;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      font-size: 1.15rem;
+      line-height: 1.55;
+    }
+
+    .antworten {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 13px 16px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(0.96);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-richtig {
+      background: #dcfce7;
+      color: #166534;
+      border: 2px solid #86efac;
+    }
+
+    .btn-unbestimmt {
+      background: #fef3c7;
+      color: #92400e;
+      border: 2px solid #fcd34d;
+    }
+
+    .btn-falsch {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #fca5a5;
+    }
+
+    .weiter {
+      width: 100%;
+      margin-top: 18px;
+      background: var(--blau);
+      color: white;
+    }
+
+    .feedback {
+      min-height: 60px;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .feedback.sichtbar {
+      display: block;
+    }
+
+    .feedback.richtig {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .feedback.falsch {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .feedback.unbestimmt {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .ergebnis {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      display: none;
+    }
+
+    .ergebnis.sichtbar {
+      display: block;
+    }
+
+    .legende {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: var(--grau);
+    }
+
+    .legende span::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+      border-radius: 2px;
+      background: var(--blau);
+    }
+
+    .hinweis {
+      color: var(--grau);
+      font-size: 0.9rem;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 800px) {
+      .task-grid {
+        grid-template-columns: 1fr;
+      }
+
+      main,
+      header,
+      .statusbar {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .visualisierung svg {
+        min-width: 460px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Analyse von Diagrammen und Tabellen</h1>
+      <p>
+        Prüfe, ob die Aussage anhand der dargestellten Informationen
+        richtig, unbestimmt oder falsch ist.
+      </p>
+    </header>
+
+    <div class="statusbar">
+      <div>Aufgabe: <span id="aufgabeNummer">1</span></div>
+      <div>Punktestand: <span id="punkte">0</span></div>
+      <div id="timer" class="timer">50 Sekunden</div>
+    </div>
+
+    <main>
+      <div class="instruction">
+        <strong>Arbeitsanweisung:</strong>
+        Verwende ausschließlich die Informationen aus dem Diagramm oder der Tabelle.
+        Eine Aussage ist <strong>unbestimmt</strong>, wenn sie aus den vorhandenen
+        Informationen nicht eindeutig abgeleitet werden kann.
+      </div>
+
+      <div class="task-grid">
+        <section class="card">
+          <h2 id="titel">Darstellung</h2>
+          <div id="beschreibung" class="description"></div>
+          <div id="visualisierung" class="visualisierung"></div>
+          <div class="legende">
+            <span>Wertangaben aus der Darstellung</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Zu prüfende Aussage</h2>
+
+          <div id="aussage" class="aussage"></div>
+
+          <div class="antworten">
+            <button class="btn-richtig" data-antwort="richtig">
+              Richtig
+            </button>
+
+            <button class="btn-unbestimmt" data-antwort="unbestimmt">
+              Unbestimmt
+            </button>
+
+            <button class="btn-falsch" data-antwort="falsch">
+              Falsch
+            </button>
+          </div>
+
+          <div id="feedback" class="feedback"></div>
+
+          <button id="weiterButton" class="weiter" disabled>
+            Nächste Aufgabe
+          </button>
+
+          <div class="hinweis">
+            Jede Aufgabe muss innerhalb von 50 Sekunden beantwortet werden.
+          </div>
+        </section>
+      </div>
+
+      <div id="ergebnis" class="ergebnis"></div>
+    </main>
+  </div>
+
+  <script>
+    const KATEGORIEN = [
+      "Januar", "Februar", "März", "April",
+      "Mai", "Juni", "Juli", "August"
+    ];
+
+    const PRODUKTE = [
+      "Produkt A", "Produkt B", "Produkt C",
+      "Produkt D", "Produkt E"
+    ];
+
+    let aktuelleAufgabe = null;
+    let timerIntervall = null;
+    let verbleibendeZeit = 50;
+    let aufgabeNummer = 1;
+    let punkte = 0;
+    let beantwortet = false;
+
+    const timerElement = document.getElementById("timer");
+    const aufgabeElement = document.getElementById("aufgabeNummer");
+    const punkteElement = document.getElementById("punkte");
+    const titelElement = document.getElementById("titel");
+    const beschreibungElement = document.getElementById("beschreibung");
+    const visualisierungElement = document.getElementById("visualisierung");
+    const aussageElement = document.getElementById("aussage");
+    const feedbackElement = document.getElementById("feedback");
+    const weiterButton = document.getElementById("weiterButton");
+    const ergebnisElement = document.getElementById("ergebnis");
+    const antwortButtons = document.querySelectorAll("[data-antwort]");
+
+    function zufall(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function auswahl(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function mischen(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function formatZahl(wert) {
+      return wert.toLocaleString("de-DE");
+    }
+
+    function generiereWerte(anzahl, min = 20, max = 100) {
+      return Array.from(
+        { length: anzahl },
+        () => zufall(min, max)
+      );
+    }
+
+    function findeMaximum(daten) {
+      return daten.reduce((max, item) =>
+        item.wert > max.wert ? item : max
+      );
+    }
+
+    function findeMinimum(daten) {
+      return daten.reduce((min, item) =>
+        item.wert < min.wert ? item : min
+      );
+    }
+
+    function rendereBalkendiagramm(daten) {
+      const breite = 650;
+      const hoehe = 360;
+      const diagrammHoehe = 250;
+      const startX = 65;
+      const startY = 35;
+      const balkenBreite = 48;
+      const abstand = 28;
+      const maxWert = Math.max(...daten.map(item => item.wert));
+      const skala = diagrammHoehe / maxWert;
+
+      let svg = `
+        <svg viewBox="0 0 ${breite} ${hoehe}"
+             xmlns="http://www.w3.org/2000/svg"
+             aria-label="Balkendiagramm">
+          <line x1="55" y1="${startY}" x2="55" y2="${startY + diagrammHoehe}"
+                stroke="#334155" stroke-width="2"/>
+          <line x1="55" y1="${startY + diagrammHoehe}"
+                x2="630" y2="${startY + diagrammHoehe}"
+                stroke="#334155" stroke-width="2"/>
+      `;
+
+      for (let i = 0; i <= 5; i++) {
+        const wert = Math.round(maxWert / 5 * i);
+        const y = startY + diagrammHoehe - wert * skala;
+
+        svg += `
+          <line x1="50" y1="${y}" x2="630" y2="${y}"
+                stroke="#cbd5e1" stroke-width="1"/>
+          <text x="42" y="${y + 4}" text-anchor="end"
+                font-size="12" fill="#475569">${wert}</text>
+        `;
+      }
+
+      daten.forEach((item, index) => {
+        const x = startX + index * (balkenBreite + abstand);
+        const balkenHoehe = item.wert * skala;
+        const y = startY + diagrammHoehe - balkenHoehe;
+
+        svg += `
+          <rect x="${x}" y="${y}"
+                width="${balkenBreite}" height="${balkenHoehe}"
+                rx="4" fill="#2563eb"/>
+          <text x="${x + balkenBreite / 2}" y="${y - 8}"
+                text-anchor="middle" font-size="12"
+                fill="#1e293b">${item.wert}</text>
+          <text x="${x + balkenBreite / 2}"
+                y="${startY + diagrammHoehe + 22}"
+                text-anchor="middle" font-size="12"
+                fill="#334155">${item.name}</text>
+        `;
+      });
+
+      svg += "</svg>";
+      return svg;
+    }
+
+    function rendereLiniendiagramm(daten) {
+      const breite = 650;
+      const hoehe = 360;
+      const diagrammHoehe = 250;
+      const startX = 65;
+      const startY = 35;
+      const maxWert = Math.max(...daten.map(item => item.wert));
+      const minWert = Math.min(...daten.map(item => item.wert));
+      const schrittX = 560 / (daten.length - 1 || 1);
+      const skala = diagrammHoehe / Math.max(maxWert, 1);
+
+      let svg = `
+        <svg viewBox="0 0 ${breite} ${hoehe}"
+             xmlns="http://www.w3.org/2000/svg"
+             aria-label="Liniendiagramm">
+          <line x1="55" y1="${startY}" x2="55"
+                y2="${startY + diagrammHoehe}"
+                stroke="#334155" stroke-width="2"/>
+          <line x1="55" y1="${startY + diagrammHoehe}"
+                x2="630" y2="${startY + diagrammHoehe}"
+                stroke="#334155" stroke-width="2"/>
+      `;
+
+      for (let i = 0; i <= 5; i++) {
+        const wert = Math.round(maxWert / 5 * i);
+        const y = startY + diagrammHoehe - wert * skala;
+
+        svg += `
+          <line x1="50" y1="${y}" x2="630" y2="${y}"
+                stroke="#cbd5e1" stroke-width="1"/>
+          <text x="42" y="${y + 4}" text-anchor="end"
+                font-size="12" fill="#475569">${wert}</text>
+        `;
+      }
+
+      const punkteLinie = daten.map((item, index) => {
+        const x = startX + index * schrittX;
+        const y = startY + diagrammHoehe - item.wert * skala;
+        return `${x},${y}`;
+      }).join(" ");
+
+      svg += `
+        <polyline points="${punkteLinie}"
+                  fill="none" stroke="#2563eb"
+                  stroke-width="4"
+                  stroke-linejoin="round"
+                  stroke-linecap="round"/>
+      `;
+
+      daten.forEach((item, index) => {
+        const x = startX + index * schrittX;
+        const y = startY + diagrammHoehe - item.wert * skala;
+
+        svg += `
+          <circle cx="${x}" cy="${y}" r="6" fill="#1d4ed8"/>
+          <text x="${x}" y="${y - 12}" text-anchor="middle"
+                font-size="12" fill="#1e293b">${item.wert}</text>
+          <text x="${x}" y="${startY + diagrammHoehe + 22}"
+                text-anchor="middle" font-size="12"
+                fill="#334155">${item.name}</text>
+        `;
+      });
+
+      svg += "</svg>";
+      return svg;
+    }
+
+    function rendereTabelle(daten) {
+      let html = `
+        <table style="
+          width: 100%;
+          border-collapse: collapse;
+          background: white;
+          font-size: 1rem;
+        ">
+          <thead>
+            <tr style="background: #dbeafe;">
+              <th style="padding: 13px; border: 1px solid #94a3b8; text-align: left;">
+                Kategorie
+              </th>
+              <th style="padding: 13px; border: 1px solid #94a3b8; text-align: right;">
+                Wert
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      daten.forEach(item => {
+        html += `
+          <tr>
+            <td style="padding: 13px; border: 1px solid #cbd5e1;">
+              ${item.name}
+            </td>
+            <td style="padding: 13px; border: 1px solid #cbd5e1; text-align: right;">
+              ${formatZahl(item.wert)}
+            </td>
+          </tr>
+        `;
+      });
+
+      html += "</tbody></table>";
+      return html;
+    }
+
+    function erstelleBalkenAufgabe() {
+      const kategorien = mischen(PRODUKTE).slice(0, zufall(4, 5));
+      const daten = kategorien.map((name, index) => ({
+        name,
+        wert: zufall(25, 120)
+      }));
+
+      const modus = zufall(1, 5);
+      let aussage;
+      let korrekt;
+      let erklaerung;
+
+      const erstes = daten[0];
+      const zweites = daten[1];
+      const maximum = findeMaximum(daten);
+      const minimum = findeMinimum(daten);
+
+      if (modus === 1) {
+        const behaupteterWert = erstes.wert;
+        aussage = `Der Wert von ${erstes.name} beträgt ${behaupteterWert}.`;
+        korrekt = "richtig";
+        erklaerung = `Der Balken von ${erstes.name} zeigt den Wert ${behaupteterWert}.`;
+      }
+
+      if (modus === 2) {
+        const behaupteterWert = erstes.wert + zufall(1, 20);
+        aussage = `Der Wert von ${erstes.name} beträgt ${behaupteterWert}.`;
+        korrekt = "falsch";
+        erklaerung = `In der Darstellung beträgt der Wert ${erstes.name} genau ${erstes.wert}.`;
+      }
+
+      if (modus === 3) {
+        const istGroesser = erstes.wert > zweites.wert;
+        aussage = `${erstes.name} hat einen höheren Wert als ${zweites.name}.`;
+        korrekt = istGroesser ? "richtig" : "falsch";
+        erklaerung = istGroesser
+          ? `${erstes.name} liegt mit ${erstes.wert} über ${zweites.name} mit ${zweites.wert}.`
+          : `${erstes.name} liegt mit ${erstes.wert} nicht über ${zweites.name} mit ${zweites.wert}.`;
+      }
+
+      if (modus === 4) {
+        aussage = `${maximum.name} hat den höchsten dargestellten Wert.`;
+        korrekt = "richtig";
+        erklaerung = `${maximum.name} besitzt mit ${maximum.wert} den höchsten Wert.`;
+      }
+
+      if (modus === 5) {
+        aussage = `${erstes.name} ist bei den Kundinnen und Kunden beliebter als ${zweites.name}.`;
+        korrekt = "unbestimmt";
+        erklaerung = "Die Darstellung zeigt nur Werte, aber keine Beliebtheit oder Gründe für Unterschiede.";
+      }
+
+      return {
+        titel: "Balkendiagramm: Vergleich von Produkten",
+        beschreibung: "Das Diagramm zeigt die Anzahl der Verkäufe verschiedener Produkte.",
+        visualisierung: rendereBalkendiagramm(daten),
+        aussage,
+        korrekt,
+        erklaerung
+      };
+    }
+
+    function erstelleLinienAufgabe() {
+      const kategorien = mischen(KATEGORIEN).slice(0, 6);
+      const daten = kategorien.map((name, index) => ({
+        name,
+        wert: zufall(30, 100)
+      }));
+
+      const modus = zufall(1, 5);
+      const erstes = daten[0];
+      const zweites = daten[1];
+      const letztes = daten[daten.length - 1];
+      let aussage;
+      let korrekt;
+      let erklaerung;
+
+      if (modus === 1) {
+        const istHoeher = letztes.wert > erstes.wert;
+        aussage = `Der Wert im ${letztes.name} ist höher als im ${erstes.name}.`;
+        korrekt = istHoeher ? "richtig" : "falsch";
+        erklaerung = istHoeher
+          ? `${letztes.name}: ${letztes.wert}; ${erstes.name}: ${erstes.wert}.`
+          : `${letztes.name}: ${letztes.wert}; ${erstes.name}: ${erstes.wert}.`;
+      }
+
+      if (modus === 2) {
+        aussage = `Der Wert stieg vom ${erstes.name} bis zum ${letztes.name} durchgehend an.`;
+        const steigtDurchgehend = daten.every((item, index) =>
+          index === 0 || item.wert > daten[index - 1].wert
+        );
+        korrekt = steigtDurchgehend ? "richtig" : "falsch";
+        erklaerung = steigtDurchgehend
+          ? "Jeder folgende Wert ist höher als der vorherige."
+          : "Die Werte steigen nicht in jedem Abschnitt durchgehend an.";
+      }
+
+      if (modus === 3) {
+        aussage = `Zwischen ${erstes.name} und ${zweites.name} gab es einen Rückgang.`;
+        const rueckgang = zweites.wert < erstes.wert;
+        korrekt = rueckgang ? "richtig" : "falsch";
+        erklaerung = rueckgang
+          ? `Der Wert sank von ${erstes.wert} auf ${zweites.wert}.`
+          : `Der Wert stieg von ${erstes.wert} auf ${zweites.wert} oder blieb gleich.`;
+      }
+
+      if (modus === 4) {
+        aussage = `Der Rückgang nach dem höchsten Wert wurde durch schlechtes Wetter verursacht.`;
+        korrekt = "unbestimmt";
+        erklaerung = "Das Diagramm zeigt Werte, aber keine Ursache für deren Veränderung.";
+      }
+
+      if (modus === 5) {
+        const mittelwert = Math.round(
+          daten.reduce((summe, item) => summe + item.wert, 0) / daten.length
+        );
+
+        aussage = `Der Durchschnittswert beträgt ${mittelwert}.`;
+        const echterMittelwert =
+          daten.reduce((summe, item) => summe + item.wert, 0) / daten.length;
+
+        korrekt = echterMittelwert === mittelwert ? "richtig" : "falsch";
+        erklaerung = `Der rechnerische Durchschnitt beträgt ${echterMittelwert.toFixed(2)}.`;
+      }
+
+      return {
+        titel: "Liniendiagramm: Entwicklung im Zeitverlauf",
+        beschreibung: "Das Diagramm zeigt die Entwicklung eines Wertes über mehrere Monate.",
+        visualisierung: rendereLiniendiagramm(daten),
+        aussage,
+        korrekt,
+        erklaerung
+      };
+    }
+
+    function erstelleTabellenAufgabe() {
+      const kategorien = mischen(PRODUKTE).slice(0, 4);
+      const daten = kategorien.map(name => ({
+        name,
+        wert: zufall(10, 100)
+      }));
+
+      const modus = zufall(1, 5);
+      const erstes = daten[0];
+      const zweites = daten[1];
+      const maximum = findeMaximum(daten);
+      let aussage;
+      let korrekt;
+      let erklaerung;
+
+      if (modus === 1) {
+        aussage = `${erstes.name} und ${zweites.name} haben zusammen einen Wert von ${erstes.wert + zweites.wert}.`;
+        korrekt = "richtig";
+        erklaerung = `${erstes.wert} + ${zweites.wert} = ${erstes.wert + zweites.wert}.`;
+      }
+
+      if (modus === 2) {
+        const falscheSumme = erstes.wert + zweites.wert + zufall(1, 15);
+        aussage = `${erstes.name} und ${zweites.name} haben zusammen einen Wert von ${falscheSumme}.`;
+        korrekt = "falsch";
+        erklaerung = `Die tatsächliche Summe beträgt ${erstes.wert + zweites.wert}.`;
+      }
+
+      if (modus === 3) {
+        aussage = `${maximum.name} hat den größten Wert der Tabelle.`;
+        korrekt = "richtig";
+        erklaerung = `${maximum.name} hat mit ${maximum.wert} den höchsten Tabellenwert.`;
+      }
+
+      if (modus === 4) {
+        aussage = `${erstes.name} wird häufiger gekauft, weil es günstiger ist.`;
+        korrekt = "unbestimmt";
+        erklaerung = "Die Tabelle enthält keine Angaben zu Preisen oder Kaufgründen.";
+      }
+
+      if (modus === 5) {
+        const istGleich = erstes.wert === zweites.wert;
+        aussage = `${erstes.name} und ${zweites.name} haben denselben Wert.`;
+        korrekt = istGleich ? "richtig" : "falsch";
+        erklaerung = istGleich
+          ? `Beide Werte betragen ${erstes.wert}.`
+          : `${erstes.name}: ${erstes.wert}; ${zweites.name}: ${zweites.wert}.`;
+      }
+
+      return {
+        titel: "Tabelle: Werte verschiedener Produkte",
+        beschreibung: "Die Tabelle zeigt Messwerte für verschiedene Produkte.",
+        visualisierung: rendereTabelle(daten),
+        aussage,
+        korrekt,
+        erklaerung
+      };
+    }
+
+    function generiereAufgabe() {
+      const typ = zufall(1, 3);
+
+      if (typ === 1) {
+        return erstelleBalkenAufgabe();
+      }
+
+      if (typ === 2) {
+        return erstelleLinienAufgabe();
+      }
+
+      return erstelleTabellenAufgabe();
+    }
+
+    function starteTimer() {
+      clearInterval(timerIntervall);
+      verbleibendeZeit = 50;
+      aktualisiereTimer();
+
+      timerIntervall = setInterval(() => {
+        verbleibendeZeit--;
+        aktualisiereTimer();
+
+        if (verbleibendeZeit <= 0) {
+          clearInterval(timerIntervall);
+          zeigeZeitablauf();
+        }
+      }, 1000);
+    }
+
+    function aktualisiereTimer() {
+      timerElement.textContent = `${verbleibendeZeit} Sekunden`;
+      timerElement.classList.remove("warnung", "ende");
+
+      if (verbleibendeZeit <= 10 && verbleibendeZeit > 0) {
+        timerElement.classList.add("warnung");
+      }
+
+      if (verbleibendeZeit <= 0) {
+        timerElement.classList.add("ende");
+      }
+    }
+
+    function ladeAufgabe() {
+      aktuelleAufgabe = generiereAufgabe();
+      beantwortet = false;
+
+      titelElement.textContent = aktuelleAufgabe.titel;
+      beschreibungElement.textContent = aktuelleAufgabe.beschreibung;
+      visualisierungElement.innerHTML = aktuelleAufgabe.visualisierung;
+      aussageElement.textContent = aktuelleAufgabe.aussage;
+
+      feedbackElement.className = "feedback";
+      feedbackElement.textContent = "";
+
+      weiterButton.disabled = true;
+
+      antwortButtons.forEach(button => {
+        button.disabled = false;
+      });
+
+      ergebnisElement.className = "ergebnis";
+      starteTimer();
+    }
+
+    function zeigeZeitablauf() {
+      if (beantwortet) return;
+
+      beantwortet = true;
+
+      antwortButtons.forEach(button => {
+        button.disabled = true;
+      });
+
+      weiterButton.disabled = false;
+
+      feedbackElement.className = "feedback sichtbar falsch";
+      feedbackElement.innerHTML = `
+        <strong>Zeit abgelaufen.</strong><br>
+        Die korrekte Bewertung wäre:
+        <strong>${aktuelleAufgabe.korrekt}</strong>.<br>
+        ${aktuelleAufgabe.erklaerung}
+      `;
+    }
+
+    function pruefeAntwort(antwort) {
+      if (beantwortet) return;
+
+      beantwortet = true;
+      clearInterval(timerIntervall);
+
+      antwortButtons.forEach(button => {
+        button.disabled = true;
+      });
+
+      weiterButton.disabled = false;
+
+      const richtig = antwort === aktuelleAufgabe.korrekt;
+
+      if (richtig) {
+        punkte++;
+        punkteElement.textContent = punkte;
+      }
+
+      const klasse = richtig
+        ? aktuelleAufgabe.korrekt
+        : "falsch";
+
+      feedbackElement.className = `feedback sichtbar ${klasse}`;
+
+      if (richtig) {
+        feedbackElement.innerHTML = `
+          <strong>Richtig!</strong><br>
+          ${aktuelleAufgabe.erklaerung}
+        `;
+      } else {
+        feedbackElement.innerHTML = `
+          <strong>Nicht korrekt.</strong><br>
+          Deine Antwort: <strong>${antwort}</strong><br>
+          Richtige Bewertung: <strong>${aktuelleAufgabe.korrekt}</strong><br>
+          ${aktuelleAufgabe.erklaerung}
+        `;
+      }
+    }
+
+    antwortButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        pruefeAntwort(button.dataset.antwort);
+      });
+    });
+
+    weiterButton.addEventListener("click", () => {
+      aufgabeNummer++;
+      aufgabeElement.textContent = aufgabeNummer;
+
+      if (aufgabeNummer > 20) {
+        zeigeEndergebnis();
+      } else {
+        ladeAufgabe();
+      }
+    });
+
+    function zeigeEndergebnis() {
+      clearInterval(timerIntervall);
+
+      document.querySelector(".task-grid").style.display = "none";
+
+      ergebnisElement.className = "ergebnis sichtbar";
+      ergebnisElement.innerHTML = `
+        <h2>Auswertung</h2>
+        <p>
+          Du hast <strong>${punkte} von 20 Aufgaben</strong> richtig beantwortet.
+        </p>
+        <button class="weiter" onclick="location.reload()">
+          Neue Runde starten
+        </button>
+      `;
+    }
+
+    ladeAufgabe();
+  </script>
+</body>
+</html>

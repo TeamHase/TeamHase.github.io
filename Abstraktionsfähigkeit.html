@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemeinsamer Oberbegriff</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #dcfce7);
+            color: #1f2937;
+        }
+
+        .spiel {
+            width: min(850px, 94%);
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #1d4ed8;
+        }
+
+        .beschreibung {
+            color: #4b5563;
+            margin-bottom: 25px;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 20px 0 15px;
+            font-weight: bold;
+        }
+
+        .zeit-container {
+            width: 100%;
+            height: 18px;
+            background: #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        #zeitbalken {
+            width: 100%;
+            height: 100%;
+            background: #22c55e;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        #frage {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 25px 0;
+        }
+
+        .woerter {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .wort-button {
+            min-height: 75px;
+            padding: 15px;
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            background: #eff6ff;
+            color: #1e3a8a;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .wort-button:hover:not(:disabled) {
+            background: #dbeafe;
+            transform: translateY(-2px);
+        }
+
+        .wort-button.ausgewaehlt {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .wort-button.richtig {
+            background: #bbf7d0 !important;
+            border-color: #16a34a !important;
+            color: #14532d !important;
+        }
+
+        .wort-button.falsch {
+            background: #fecaca !important;
+            border-color: #dc2626 !important;
+            color: #7f1d1d !important;
+        }
+
+        .wort-button:disabled {
+            cursor: default;
+        }
+
+        #meldung {
+            min-height: 30px;
+            margin: 22px 0 12px;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #naechsteFrage {
+            display: none;
+        }
+
+        #ergebnis {
+            display: none;
+        }
+
+        #ergebnis h2 {
+            color: #1d4ed8;
+        }
+
+        .ergebnis-punkte {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 600px) {
+            .woerter {
+                grid-template-columns: 1fr;
+            }
+
+            .status {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="spiel">
+
+    <div id="spielbereich">
+        <h1>Gemeinsamer Oberbegriff</h1>
+
+        <p class="beschreibung">
+            Klicke genau zwei Wörter an, die zu einem gemeinsamen Oberbegriff gehören.
+        </p>
+
+        <div class="status">
+            <span id="aufgabe">Aufgabe: 1 von 10</span>
+            <span id="punkte">Punkte: 0</span>
+            <span id="zeit">Zeit: 30 Sekunden</span>
+        </div>
+
+        <div class="zeit-container">
+            <div id="zeitbalken"></div>
+        </div>
+
+        <div id="frage">
+            Klicke auf „Spiel starten“, um zu beginnen.
+        </div>
+
+        <div id="woerter" class="woerter"></div>
+
+        <div id="meldung"></div>
+
+        <button id="startButton">
+            Spiel starten
+        </button>
+
+        <button id="naechsteFrage">
+            Nächste Aufgabe
+        </button>
+    </div>
+
+    <div id="ergebnis">
+        <h1>Runde beendet</h1>
+
+        <h2>Dein Ergebnis</h2>
+
+        <div id="ergebnisPunkte" class="ergebnis-punkte"></div>
+        <p id="ergebnisText"></p>
+
+        <button id="neueRunde">
+            Neue Runde starten
+        </button>
+    </div>
+
+</div>
+
+<script>
+    const wortgruppen = {
+        "Obst": [
+            "Apfel", "Banane", "Birne", "Orange",
+            "Kirsche", "Mango", "Pfirsich", "Erdbeere"
+        ],
+
+        "Tiere": [
+            "Hund", "Katze", "Pferd", "Elefant",
+            "Tiger", "Adler", "Pinguin", "Delfin"
+        ],
+
+        "Möbel": [
+            "Tisch", "Stuhl", "Sofa", "Schrank",
+            "Bett", "Regal", "Sessel", "Kommode"
+        ],
+
+        "Berufe": [
+            "Arzt", "Lehrer", "Bäcker", "Polizist",
+            "Koch", "Pilot", "Mechaniker", "Architekt"
+        ],
+
+        "Fahrzeuge": [
+            "Auto", "Bus", "Fahrrad", "Zug",
+            "Flugzeug", "Schiff", "Motorrad", "Traktor"
+        ],
+
+        "Kleidung": [
+            "Hose", "Jacke", "Hemd", "Schuh",
+            "Mütze", "Schal", "Rock", "Handschuh"
+        ],
+
+        "Schulsachen": [
+            "Heft", "Bleistift", "Radiergummi", "Lineal",
+            "Tafel", "Rucksack", "Kreide", "Füller"
+        ],
+
+        "Sportarten": [
+            "Fußball", "Tennis", "Schwimmen", "Boxen",
+            "Basketball", "Golf", "Skifahren", "Handball"
+        ],
+
+        "Musikinstrumente": [
+            "Gitarre", "Klavier", "Trompete", "Geige",
+            "Schlagzeug", "Flöte", "Cello", "Saxofon"
+        ],
+
+        "Getränke": [
+            "Wasser", "Kaffee", "Tee", "Limonade",
+            "Saft", "Milch", "Kakao", "Cola"
+        ]
+    };
+
+    const MAXIMALE_AUFGABEN = 10;
+    const MAXIMALE_ZEIT = 30;
+
+    const spielbereich = document.getElementById("spielbereich");
+    const ergebnisBereich = document.getElementById("ergebnis");
+
+    const aufgabeElement = document.getElementById("aufgabe");
+    const punkteElement = document.getElementById("punkte");
+    const zeitElement = document.getElementById("zeit");
+    const zeitbalkenElement = document.getElementById("zeitbalken");
+    const frageElement = document.getElementById("frage");
+    const woerterElement = document.getElementById("woerter");
+    const meldungElement = document.getElementById("meldung");
+
+    const startButton = document.getElementById("startButton");
+    const naechsteFrageButton = document.getElementById("naechsteFrage");
+    const neueRundeButton = document.getElementById("neueRunde");
+
+    const ergebnisPunkteElement =
+        document.getElementById("ergebnisPunkte");
+
+    const ergebnisTextElement =
+        document.getElementById("ergebnisText");
+
+    let aktuelleFrage = null;
+    let ausgewaehlteWoerter = [];
+    let punkte = 0;
+    let aufgabenNummer = 0;
+    let verbleibendeZeit = MAXIMALE_ZEIT;
+    let timer = null;
+    let spielAktiv = false;
+
+    function zufall(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function mischen(array) {
+        return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function zweiZufallswoerter(array) {
+        const gemischt = mischen(array);
+
+        return [
+            gemischt[0],
+            gemischt[1]
+        ];
+    }
+
+    function erstelleFrage() {
+        const kategorien = Object.keys(wortgruppen);
+
+        const richtigeKategorie = zufall(kategorien);
+        const richtigeWoerter = zweiZufallswoerter(
+            wortgruppen[richtigeKategorie]
+        );
+
+        const andereKategorien = mischen(
+            kategorien.filter(kategorie =>
+                kategorie !== richtigeKategorie
+            )
+        );
+
+        const woerter = [
+            {
+                wort: richtigeWoerter[0],
+                richtig: true
+            },
+            {
+                wort: richtigeWoerter[1],
+                richtig: true
+            }
+        ];
+
+        /*
+         * Vier falsche Wörter aus anderen Kategorien hinzufügen.
+         */
+        for (let i = 0; i < 4; i++) {
+            const kategorie = andereKategorien[i];
+
+            woerter.push({
+                wort: zufall(wortgruppen[kategorie]),
+                richtig: false
+            });
+        }
+
+        return {
+            kategorie: richtigeKategorie,
+            woerter: mischen(woerter)
+        };
+    }
+
+    function neueAufgabe() {
+        clearInterval(timer);
+
+        aktuelleFrage = erstelleFrage();
+        ausgewaehlteWoerter = [];
+        verbleibendeZeit = MAXIMALE_ZEIT;
+
+        aufgabeElement.textContent =
+            `Aufgabe: ${aufgabenNummer} von ${MAXIMALE_AUFGABEN}`;
+
+        punkteElement.textContent = `Punkte: ${punkte}`;
+
+        zeitElement.textContent =
+            `Zeit: ${verbleibendeZeit} Sekunden`;
+
+        zeitbalkenElement.style.width = "100%";
+        zeitbalkenElement.style.background = "#22c55e";
+
+        frageElement.textContent =
+            "Welche zwei Wörter gehören zum gleichen Oberbegriff?";
+
+        meldungElement.textContent = "";
+        woerterElement.innerHTML = "";
+        naechsteFrageButton.style.display = "none";
+
+        aktuelleFrage.woerter.forEach((element, index) => {
+            const button = document.createElement("button");
+
+            button.className = "wort-button";
+            button.textContent = element.wort;
+            button.dataset.index = index;
+
+            button.addEventListener("click", () => {
+                wortAuswaehlen(button, element);
+            });
+
+            woerterElement.appendChild(button);
+        });
+
+        spielAktiv = true;
+        timerStarten();
+    }
+
+    function wortAuswaehlen(button, element) {
+        if (!spielAktiv) {
+            return;
+        }
+
+        /*
+         * Ein bereits ausgewähltes Wort wieder abwählen.
+         */
+        if (ausgewaehlteWoerter.includes(element)) {
+            ausgewaehlteWoerter =
+                ausgewaehlteWoerter.filter(wort => wort !== element);
+
+            button.classList.remove("ausgewaehlt");
+            return;
+        }
+
+        /*
+         * Höchstens zwei Wörter dürfen ausgewählt werden.
+         */
+        if (ausgewaehlteWoerter.length >= 2) {
+            return;
+        }
+
+        ausgewaehlteWoerter.push(element);
+        button.classList.add("ausgewaehlt");
+
+        /*
+         * Nach Auswahl von zwei Wörtern automatisch auswerten.
+         */
+        if (ausgewaehlteWoerter.length === 2) {
+            auswerten();
+        }
+    }
+
+    function auswerten() {
+        spielAktiv = false;
+        clearInterval(timer);
+
+        const buttons = document.querySelectorAll(".wort-button");
+
+        buttons.forEach((button, index) => {
+            button.disabled = true;
+
+            const wort = aktuelleFrage.woerter[index];
+
+            if (wort.richtig) {
+                button.classList.remove("ausgewaehlt");
+                button.classList.add("richtig");
+            }
+
+            if (
+                ausgewaehlteWoerter.includes(wort) &&
+                !wort.richtig
+            ) {
+                button.classList.remove("ausgewaehlt");
+                button.classList.add("falsch");
+            }
+        });
+
+        const richtigeAntwort =
+            ausgewaehlteWoerter.length === 2 &&
+            ausgewaehlteWoerter.every(wort => wort.richtig);
+
+        if (richtigeAntwort) {
+            punkte++;
+
+            punkteElement.textContent =
+                `Punkte: ${punkte}`;
+
+            meldungElement.textContent =
+                `Richtig! Der Oberbegriff lautet: ${aktuelleFrage.kategorie}`;
+
+            meldungElement.style.color = "#15803d";
+        } else {
+            meldungElement.textContent =
+                `Falsch! Der Oberbegriff lautet: ${aktuelleFrage.kategorie}`;
+
+            meldungElement.style.color = "#b91c1c";
+        }
+
+        naechsteFrageButton.style.display = "inline-block";
+
+        if (aufgabenNummer === MAXIMALE_AUFGABEN) {
+            naechsteFrageButton.textContent =
+                "Ergebnis anzeigen";
+        }
+    }
+
+    function zeitAbgelaufen() {
+        spielAktiv = false;
+        clearInterval(timer);
+
+        const buttons = document.querySelectorAll(".wort-button");
+
+        buttons.forEach((button, index) => {
+            button.disabled = true;
+
+            const wort = aktuelleFrage.woerter[index];
+
+            if (wort.richtig) {
+                button.classList.remove("ausgewaehlt");
+                button.classList.add("richtig");
+            }
+        });
+
+        meldungElement.textContent =
+            `Die Zeit ist abgelaufen. Der Oberbegriff lautet: ${
+                aktuelleFrage.kategorie
+            }`;
+
+        meldungElement.style.color = "#b91c1c";
+        naechsteFrageButton.style.display = "inline-block";
+
+        if (aufgabenNummer === MAXIMALE_AUFGABEN) {
+            naechsteFrageButton.textContent =
+                "Ergebnis anzeigen";
+        }
+    }
+
+    function timerStarten() {
+        timer = setInterval(() => {
+            verbleibendeZeit--;
+
+            zeitElement.textContent =
+                `Zeit: ${verbleibendeZeit} Sekunden`;
+
+            zeitbalkenElement.style.width =
+                `${(verbleibendeZeit / MAXIMALE_ZEIT) * 100}%`;
+
+            if (verbleibendeZeit <= 10) {
+                zeitbalkenElement.style.background = "#f97316";
+            }
+
+            if (verbleibendeZeit <= 5) {
+                zeitbalkenElement.style.background = "#dc2626";
+            }
+
+            if (verbleibendeZeit <= 0) {
+                zeitAbgelaufen();
+            }
+        }, 1000);
+    }
+
+    function spielStarten() {
+        clearInterval(timer);
+
+        punkte = 0;
+        aufgabenNummer = 1;
+
+        spielbereich.style.display = "block";
+        ergebnisBereich.style.display = "none";
+
+        startButton.style.display = "none";
+
+        neueAufgabe();
+    }
+
+    function naechsteAufgabe() {
+        if (aufgabenNummer >= MAXIMALE_AUFGABEN) {
+            ergebnisAnzeigen();
+            return;
+        }
+
+        aufgabenNummer++;
+        neueAufgabe();
+    }
+
+    function ergebnisAnzeigen() {
+        clearInterval(timer);
+        spielAktiv = false;
+
+        spielbereich.style.display = "none";
+        ergebnisBereich.style.display = "block";
+
+        ergebnisPunkteElement.textContent =
+            `${punkte} von ${MAXIMALE_AUFGABEN} Punkten`;
+
+        let text = "";
+
+        if (punkte === 10) {
+            text = "Hervorragend! Du hast alle Aufgaben richtig gelöst.";
+        } else if (punkte >= 7) {
+            text = "Sehr gut! Du hast ein starkes Ergebnis erzielt.";
+        } else if (punkte >= 4) {
+            text = "Gut gemacht! Mit etwas Übung geht noch mehr.";
+        } else {
+            text = "Versuche es noch einmal und verbessere dein Ergebnis.";
+        }
+
+        ergebnisTextElement.textContent = text;
+    }
+
+    startButton.addEventListener("click", spielStarten);
+
+    naechsteFrageButton.addEventListener("click", naechsteAufgabe);
+
+    neueRundeButton.addEventListener("click", () => {
+        spielStarten();
+    });
+</script>
+
+</body>
+</html>
